@@ -1,4 +1,4 @@
-const APP_VERSION='3.3.6';
+const APP_VERSION='3.3.7';
 const APP_KEYS={reservations:'kp_reservations',sales:'kp_sales',products:'kp_products',settings:'kp_settings',update:'kp_update_state'};
 function loadJSON(k,f){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch(e){return f}}
 function saveJSON(k,v){localStorage.setItem(k,JSON.stringify(v))}

@@ -87,8 +87,7 @@ function dailyAnalysisCard(dateStr){
     </div>
     <div class="soft-text">一番売れたパン：${top?`${esc(top[0])} ${top[1].qty}個`:'データなし'}</div>
     <div class="daily-products">${prodLines}</div>
-    ${memo?`<details class="memo-box"><summary>メモを読む</summary><div>${esc(memo).replace(/
-/g,'<br>')}</div></details>`:''}
+    ${memo?`<details class="memo-box"><summary>メモを読む</summary><div>${esc(memo).replace(/\n/g,'<br>')}</div></details>`:''}
   </div>`;
 }
 function datesInMonth(ym){if(!ym)return[];const [y,m]=ym.split('-').map(Number);const last=new Date(y,m,0).getDate();return Array.from({length:last},(_,i)=>`${y}-${String(m).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`)}
