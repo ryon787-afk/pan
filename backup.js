@@ -1,0 +1,1 @@
+const Backup={download(){const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kubochan_pan_backup_'+Store.today()+'.json';a.click()},restore(file){const r=new FileReader();r.onload=()=>{DB=JSON.parse(r.result);Store.save(DB);App.render();alert('復元しました')};r.readAsText(file)}}
