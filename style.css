@@ -10,3 +10,18 @@
 .home-prod-detail{font-size:11px;margin:-4px 0 4px;color:#6b8aa0;line-height:1.45}
 #homeProduction .prod-line,#homeTomorrowProduction .prod-line{padding:5px 0}
 #productionTomorrowList{margin-top:4px}
+
+/* Ver.3.3.6 daily analytics */
+.daily-analysis-card{background:#ffffff;border:1px solid rgba(76,158,205,.22);border-radius:18px;padding:12px;margin:10px 0;box-shadow:0 8px 20px rgba(70,150,190,.10);color:#24536b}
+.daily-analysis-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.daily-analysis-head b{font-size:16px;color:#235a78}
+.daily-badges{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;background:#eaf8ff;color:#24536b;padding:5px 9px;font-size:12px;font-weight:700}
+.badge.memo{background:#fff1c9;color:#6a4b00}
+.daily-products{background:#f3fbff;border-radius:14px;padding:8px;margin-top:8px}
+.daily-products .prod-line{border-bottom:1px dashed rgba(61,143,185,.25);padding:4px 0}
+.daily-products .prod-line:last-child{border-bottom:0}
+details.memo-box{margin-top:8px;background:#fff8df;border-radius:14px;padding:8px;color:#5a4200}
+details.memo-box summary{font-weight:800;cursor:pointer}
+.day-empty{opacity:.75;padding:12px;text-align:center}
+@media(min-width:760px){.daily-analysis-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.daily-analysis-card{margin:0}}

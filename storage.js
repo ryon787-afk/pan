@@ -1,8 +1,10 @@
-const APP_VERSION='3.3.3';
+const APP_VERSION='3.3.6';
 const APP_KEYS={reservations:'kp_reservations',sales:'kp_sales',products:'kp_products',settings:'kp_settings',update:'kp_update_state'};
 function loadJSON(k,f){try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch(e){return f}}
 function saveJSON(k,v){localStorage.setItem(k,JSON.stringify(v))}
-function today(){return new Date().toISOString().slice(0,10)}
+function formatLocalDate(d=new Date()){const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
+function today(){return formatLocalDate(new Date())}
+function addDaysLocal(dateStr,days){const [y,m,d]=String(dateStr||today()).split('-').map(Number);const dt=new Date(y,(m||1)-1,d||1);dt.setDate(dt.getDate()+Number(days||0));return formatLocalDate(dt)}
 function yen(n){return '¥'+Number(n||0).toLocaleString('ja-JP')}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
