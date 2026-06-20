@@ -1,13 +1,3 @@
-# パン屋予約・売上管理 共有版
-
-## GitHubにアップロードするファイル
-- index.html
-- app.js
-- style.css
-- manifest.json
-- service-worker.js
-- icon-192.png
-- icon-512.png
-
-## Apps Script側
-apps-script-code.js の中身を Apps Script に貼り、保存後に「新バージョン」で再デプロイしてください。
+GitHub Pages用：ZIPを解凍して中身を pan リポジトリへ上書きアップロードしてください。
+共有機能はありません。データは各端末のブラウザに保存されます。
+印刷タブから月間売上、年間売上、月間予約、製造数をA4印刷できます。

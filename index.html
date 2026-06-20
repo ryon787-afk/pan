@@ -1,57 +1,128 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#8b4f20" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css" />
-  <title>パン屋 予約・売上管理</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#c87935">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>くぼちゃんパン 管理アプリ</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>パン屋 予約・売上管理</h1>
-    <div id="todayText"></div>
-    <div id="syncStatus">共有データを読み込み中…</div>
-  </header>
+<header class="appHeader no-print">
+  <div>
+    <h1>くぼちゃんパン 管理アプリ</h1>
+    <p id="todayText"></p>
+  </div>
+</header>
+<nav class="tabs no-print">
+  <button class="active" data-tab="home">ホーム</button>
+  <button data-tab="reserve">予約</button>
+  <button data-tab="sales">売上</button>
+  <button data-tab="products">商品</button>
+  <button data-tab="reports">印刷</button>
+  <button data-tab="backup">保存</button>
+</nav>
+<main class="wrap">
+  <section id="home" class="tabPanel">
+    <div class="card">
+      <h2>今日のまとめ</h2>
+      <div class="stats">
+        <div><span>今日の予約</span><b id="homeReserveCount">0件</b></div>
+        <div><span>今日の予約金額</span><b id="homeReserveAmount">¥0</b></div>
+        <div><span>今日の売上</span><b id="homeSales">¥0</b></div>
+        <div><span>未受取</span><b id="homePending">0件</b></div>
+      </div>
+    </div>
+    <div class="card"><h2>今日作る数</h2><div id="makeList"></div></div>
+    <div class="card"><h2>今日の予約</h2><div id="todayReservations"></div></div>
+  </section>
 
-  <main>
-    <section class="card">
+  <section id="reserve" class="tabPanel hidden">
+    <div class="card">
       <h2>予約を追加</h2>
-      <div class="grid">
-        <label>日付<input id="date" type="date"></label>
-        <label>受取時間<input id="time" type="time"></label>
+      <div class="grid2">
+        <label>日付<input id="rDate" type="date"></label>
+        <label>受取時間<input id="rTime" type="time"></label>
       </div>
-      <label>お客様名<input id="name" placeholder="例：山田様"></label>
-      <label>商品名を直接入力<input id="item" placeholder="例：贅沢ミルク食パン"></label>
-      <div class="grid">
-        <label>単価<input id="unitPrice" type="number" inputmode="numeric" value="700"></label>
-        <label>個数<input id="qty" type="number" inputmode="numeric" value="1" min="1"></label>
+      <label>お客様名<input id="rName" placeholder="例：山田様"></label>
+      <div class="grid2">
+        <label>商品<select id="rProduct"></select></label>
+        <label>直接入力<input id="rItem" placeholder="商品名"></label>
       </div>
-      <label>金額<input id="amount" type="number" inputmode="numeric" value="700"></label>
-      <label>状態
-        <select id="status">
-          <option>未受取</option>
-          <option>受取済み</option>
-          <option>キャンセル</option>
-        </select>
-      </label>
-      <label>備考<textarea id="note" placeholder="例：6枚切り、袋分け、領収書あり"></textarea></label>
-      <button id="saveBtn">予約を保存</button>
-    </section>
+      <div class="grid3">
+        <label>単価<input id="rUnit" type="number" min="0"></label>
+        <label>個数<input id="rQty" type="number" min="1" value="1"></label>
+        <label>金額<input id="rAmount" type="number" min="0"></label>
+      </div>
+      <label>状態<select id="rStatus"><option>未受取</option><option>受取済み</option><option>キャンセル</option></select></label>
+      <label>備考<textarea id="rNote" placeholder="例：6枚切り、袋分け"></textarea></label>
+      <button class="primary full" id="saveReservation">予約を保存</button>
+    </div>
+    <div class="card"><h2>予約一覧</h2><label>日付で絞り込み<input id="filterDate" type="date"></label><div id="reservationList"></div></div>
+  </section>
 
-    <section class="card">
-      <h2>商品をすばやく選択</h2>
-      <div class="quick" id="quickProducts"></div>
-    </section>
+  <section id="sales" class="tabPanel hidden">
+    <div class="card">
+      <h2>売上を保存</h2>
+      <div class="grid2">
+        <label>日付<input id="sDate" type="date"></label>
+        <label>売上<input id="sAmount" type="number" min="0" placeholder="例：58000"></label>
+      </div>
+      <div class="grid2">
+        <label>天気<select id="sWeather"><option>晴れ</option><option>くもり</option><option>雨</option><option>雪</option><option>強風</option><option>猛暑</option><option>寒い</option><option>その他</option></select></label>
+        <label>メモ<input id="sMemo" placeholder="例：午前中多め"></label>
+      </div>
+      <button class="primary full" id="saveSale">売上を保存</button>
+    </div>
+    <div class="card"><h2>売上一覧</h2><div id="salesList"></div></div>
+  </section>
 
-    <section class="card">
-      <h2>共有予約一覧</h2>
-      <button class="sub" id="reloadBtn">再読み込み</button>
-      <div id="list"></div>
-    </section>
-  </main>
+  <section id="products" class="tabPanel hidden">
+    <div class="card">
+      <h2>商品登録</h2>
+      <div class="grid2">
+        <label>商品名<input id="pName" placeholder="例：贅沢ミルク食パン"></label>
+        <label>価格<input id="pPrice" type="number" min="0"></label>
+      </div>
+      <button class="primary full" id="saveProduct">商品を登録</button>
+    </div>
+    <div class="card"><h2>商品一覧</h2><div id="productList"></div></div>
+  </section>
 
-  <script src="app.js"></script>
+  <section id="reports" class="tabPanel hidden">
+    <div class="card no-print">
+      <h2>月間・年間印刷</h2>
+      <div class="grid2">
+        <label>対象月<input id="reportMonth" type="month"></label>
+        <label>対象年<input id="reportYear" type="number"></label>
+      </div>
+      <div class="buttonGrid">
+        <button class="primary" id="printMonthlySales">月間売上を印刷</button>
+        <button class="primary" id="printYearlySales">年間売上を印刷</button>
+        <button class="primary" id="printMonthlyReservations">月間予約を印刷</button>
+        <button class="primary" id="printProduction">製造数を印刷</button>
+      </div>
+    </div>
+    <div id="printArea" class="printArea"></div>
+  </section>
+
+  <section id="backup" class="tabPanel hidden">
+    <div class="card">
+      <h2>バックアップ</h2>
+      <p class="mini">機種変更や万が一のために、定期的にバックアップを保存できます。</p>
+      <div class="buttonGrid">
+        <button class="primary" id="downloadBackup">バックアップ保存</button>
+        <label class="uploadBtn">バックアップ復元<input id="restoreFile" type="file" accept="application/json" hidden></label>
+      </div>
+    </div>
+    <div class="card dangerCard">
+      <h2>データ削除</h2>
+      <button class="danger" id="clearAll">全データを削除</button>
+    </div>
+  </section>
+</main>
+<script src="app.js"></script>
 </body>
 </html>
