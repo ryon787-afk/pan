@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#9edcf2">
 <link rel="manifest" href="manifest.json?v=339">
-<title>くぼちゃんパン管理システム Ver.3.3.9</title>
+<title>くぼちゃんパン管理システム Ver.3.3.10</title>
 <style>
 :root{--bg:#eaf8ff;--card:#fff;--blue:#55b7df;--blue2:#2f9fd0;--text:#18445c;--muted:#5f7d8e;--cream:#fff7d8;--line:#c8edf9;--danger:#e66b7a;--ok:#57b982;--shadow:0 8px 22px rgba(55,150,190,.15)}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eaf8ff,#f7fcff);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:var(--text);padding-bottom:78px}header{background:linear-gradient(135deg,#8eddf5,#50b9df);color:white;padding:16px 14px 12px;border-radius:0 0 24px 24px;box-shadow:var(--shadow);position:sticky;top:0;z-index:10}h1{margin:0;font-size:19px}.sub{font-size:12px;opacity:.95}.wrap{padding:12px;max-width:1080px;margin:auto}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:14px;margin:10px 0;box-shadow:var(--shadow)}.bluecard{background:linear-gradient(135deg,#65c7ea,#2497cc);color:white}.bluecard .muted,.bluecard label{color:#eaf9ff}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:rgba(255,255,255,.22);border-radius:16px;padding:10px}.stat b{display:block;font-size:20px;margin-top:3px}label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fbfeff;font-size:16px;color:var(--text)}textarea{min-height:72px}button{border:0;border-radius:16px;padding:12px 14px;background:var(--blue);color:white;font-weight:800;font-size:14px;box-shadow:0 4px 12px rgba(47,159,208,.16)}button.secondary{background:#e8f7fc;color:var(--text)}button.danger{background:var(--danger)}button.ok{background:var(--ok)}.tabs{position:fixed;bottom:0;left:0;right:0;background:#ffffffee;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:20}.tabs button{box-shadow:none;background:transparent;color:var(--muted);font-size:11px;padding:7px 2px;border-radius:14px}.tabs button.active{background:#dff5fd;color:var(--blue2)}h2{font-size:17px;margin:0 0 10px}.item{border-top:1px solid var(--line);padding:11px 0}.item:first-child{border-top:0}.muted{color:var(--muted);font-size:12px}.pill{display:inline-block;background:#e6f8ff;color:#1f83ad;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:700}.hidden{display:none}.prodrow{background:#f2fbff;border:1px solid var(--line);border-radius:18px;padding:10px;margin:8px 0}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.miniList{font-size:13px;line-height:1.7}.printOnly{display:none}.toast{position:fixed;left:14px;right:14px;bottom:84px;background:#18445c;color:white;border-radius:18px;padding:12px;text-align:center;z-index:40;box-shadow:var(--shadow)}.modal{position:fixed;inset:0;background:rgba(0,40,70,.25);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}.modalBox{background:white;border-radius:24px;padding:18px;max-width:520px;width:100%;box-shadow:var(--shadow)}
@@ -16,7 +16,7 @@
 </style>
 </head>
 <body>
-<header><h1>🐮 くぼちゃんパン管理システム</h1><div class="sub">Ver.3.3.9｜個人情報は端末内保存</div></header>
+<header><h1>🐮 くぼちゃんパン管理システム</h1><div class="sub">Ver.3.3.10｜データ消失対策済み</div></header>
 <main class="wrap">
 <section id="home" class="tabPage">
  <div class="card bluecard"><h2>🏠 今日のまとめ</h2><div class="grid3"><div class="stat">予約件数<b id="hCount">0件</b></div><div class="stat">予約売上<b id="hReserve">¥0</b></div><div class="stat">店頭売上<b id="hShop">¥0</b></div><div class="stat">合計売上<b id="hTotal">¥0</b></div><div class="stat">未受取<b id="hWait">0件</b></div><div class="stat">製造品目<b id="hProdCount">0種</b></div></div></div>
@@ -27,18 +27,34 @@
 <section id="production" class="tabPage hidden"><div class="card"><h2>🍞 今日の製造</h2><div id="prodToday"></div><button onclick="shareLine(productionText(localDateStr(0),'今日の製造'))">LINEで送る</button><button class="secondary" onclick="window.print()">印刷</button></div><div class="card"><h2>🥐 明日の製造</h2><div id="prodTomorrow"></div><button onclick="shareLine(productionText(localDateStr(1),'明日の製造'))">LINEで送る</button></div></section>
 <section id="sales" class="tabPage hidden"><div class="card"><h2>💰 店頭販売売上</h2><div class="grid"><div><label>日付</label><input type="date" id="sDate"></div><div><label>店頭販売売上</label><input type="number" id="sShop" min="0"></div></div><div class="grid"><div><label>天気</label><select id="sWeather"><option>晴れ</option><option>くもり</option><option>雨</option><option>雪</option><option>強風</option><option>猛暑</option><option>寒い</option><option>その他</option></select></div><div><label>来店人数</label><input type="number" id="sCustomers" min="0"></div></div><label>メモ</label><textarea id="sMemo"></textarea><button onclick="saveSale()">売上を保存</button></div><div class="card"><h2>売上一覧</h2><div id="salesList"></div></div></section>
 <section id="analytics" class="tabPage hidden"><div class="card bluecard"><h2>📊 月別分析</h2><label>対象月</label><input type="month" id="aMonth" onchange="renderAnalytics()"><div class="grid3"><div class="stat">合計売上<b id="aMonthTotal">¥0</b></div><div class="stat">予約売上<b id="aReserveTotal">¥0</b></div><div class="stat">店頭売上<b id="aShopTotal">¥0</b></div><div class="stat">営業日数<b id="aDays">0日</b></div><div class="stat">1日平均<b id="aAvg">¥0</b></div><div class="stat">一番売れたパン<b id="aTop">-</b></div></div></div><div class="card"><h2>日にち別詳細</h2><div id="dailyAnalytics"></div></div></section>
-<section id="settings" class="tabPage hidden"><div class="card"><h2>⚙️ 商品管理</h2><div class="grid"><input id="pName" placeholder="商品名"><input id="pPrice" type="number" placeholder="価格"></div><div class="grid"><input id="pCat" placeholder="カテゴリー"><select id="pActive"><option value="true">販売中</option><option value="false">非表示</option></select></div><button onclick="saveProduct()">商品を登録</button><button class="secondary" onclick="restoreDefaultProducts()">初期商品を復元</button><div id="productList"></div></div><div class="card"><h2>💾 データ</h2><button onclick="backup()">バックアップ保存</button><input type="file" id="restoreFile" onchange="restore(event)"><button class="secondary" onclick="hardRefresh()">最新版を取得</button><button class="secondary" onclick="clearCache()">キャッシュ削除</button></div><div class="card"><h2>🔐 パスワード</h2><input id="pwNew" type="password" placeholder="新しいパスワード"><button onclick="setPassword()">設定・変更</button><button class="danger" onclick="removePassword()">解除</button></div></section>
+<section id="settings" class="tabPage hidden"><div class="card"><h2>⚙️ 商品管理</h2><div class="grid"><input id="pName" placeholder="商品名"><input id="pPrice" type="number" placeholder="価格"></div><div class="grid"><input id="pCat" placeholder="カテゴリー"><select id="pActive"><option value="true">販売中</option><option value="false">非表示</option></select></div><button onclick="saveProduct()">商品を登録</button><button class="secondary" onclick="restoreDefaultProducts()">初期商品を復元</button><div id="productList"></div></div><div class="card"><h2>💾 データ</h2><div class="muted">予約情報は指示がない限り消えないよう、固定保存キーで保護しています。</div><button onclick="backup()">バックアップ保存</button><input type="file" id="restoreFile" onchange="restore(event)"><button class="secondary" onclick="hardRefresh()">最新版を取得</button><button class="secondary" onclick="clearCache()">キャッシュ削除</button></div><div class="card"><h2>🔐 パスワード</h2><input id="pwNew" type="password" placeholder="新しいパスワード"><button onclick="setPassword()">設定・変更</button><button class="danger" onclick="removePassword()">解除</button></div></section>
 </main>
 <nav class="tabs"><button class="active" onclick="showTab('home',this)">🏠<br>ホーム</button><button onclick="showTab('reserve',this)">📅<br>予約</button><button onclick="showTab('production',this)">🍞<br>製造</button><button onclick="showTab('sales',this)">💰<br>売上</button><button onclick="showTab('analytics',this)">📊<br>分析</button><button onclick="showTab('settings',this)">⚙️<br>設定</button></nav>
 <div id="modalRoot"></div><div id="toast" class="toast hidden"></div>
 <script>
-const APP_VERSION='3.3.9';
+const APP_VERSION='3.3.10';
 const yen=n=>'¥'+Number(n||0).toLocaleString('ja-JP');
-const STORE='kubochan_pan_v338_data';let editId=null;
+const STORE='kubochan_pan_data';
+const LEGACY_STORES=['kubochan_pan_v338_data','kubochan_pan_v339_data','kubochan_pan_v337_data','kubochan_pan_v336_data','kubochan_pan_v335_data','kubochan_pan_v334_data','kubochan_pan_v333_data','kubochan_pan_v332_data','kubochan_pan_v331_data'];
+let editId=null;
 const defaultProducts=[['贅沢ミルク食パン',700,'食パン'],['ベーグルサンド',370,'ベーグル'],['クロワッサン',300,'菓子パン'],['あんバター',330,'菓子パン'],['あんフロマージュ',330,'菓子パン'],['ミルク屋さんのメロンパン',250,'菓子パン'],['ミルク屋さんのクリームパン',250,'菓子パン'],['塩バターベーグル',250,'ベーグル'],['ブルーベリーチーズベーグル',250,'ベーグル'],['チョコカスタードベーグル',250,'ベーグル'],['ごほうびチーズケーキ',450,'チーズケーキ']];
 let data=loadData();
-function loadData(){let d=JSON.parse(localStorage.getItem(STORE)||'null')||{};d.reservations=d.reservations||[];d.sales=d.sales||[];d.products=d.products||defaultProducts.map((p,i)=>({id:Date.now()+i,name:p[0],price:p[1],cat:p[2],active:true}));d.password=d.password||'';return d}
-function saveData(){localStorage.setItem(STORE,JSON.stringify(data))}
+function normalizeData(d){d=d&&typeof d==='object'?d:{};d.reservations=Array.isArray(d.reservations)?d.reservations:[];d.sales=Array.isArray(d.sales)?d.sales:[];d.products=Array.isArray(d.products)&&d.products.length?d.products:defaultProducts.map((p,i)=>({id:Date.now()+i,name:p[0],price:p[1],cat:p[2],active:true}));d.password=d.password||'';return d}
+function dataScore(d){return (d.reservations?.length||0)*1000+(d.sales?.length||0)*100+(d.products?.length||0)}
+function safeParse(v){try{return v?JSON.parse(v):null}catch(e){return null}}
+function loadData(){
+  const candidates=[];
+  const main=safeParse(localStorage.getItem(STORE)); if(main)candidates.push(main);
+  LEGACY_STORES.forEach(k=>{const v=safeParse(localStorage.getItem(k)); if(v)candidates.push(v)});
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i); if(k&&k.startsWith('kubochan_pan')&&k.indexOf('notice')===-1&&k!=='kubochan_pan_last_saved'){const v=safeParse(localStorage.getItem(k)); if(v&&typeof v==='object')candidates.push(v)}}
+  let best=candidates.sort((a,b)=>dataScore(b)-dataScore(a))[0]||{};
+  best=normalizeData(best);
+  try{localStorage.setItem(STORE,JSON.stringify(best))}catch(e){}
+  return best;
+}
+function saveData(){try{localStorage.setItem(STORE,JSON.stringify(data));localStorage.setItem('kubochan_pan_v338_data',JSON.stringify(data));localStorage.setItem('kubochan_pan_last_saved',new Date().toISOString())}catch(e){alert('保存容量がいっぱいの可能性があります。バックアップ保存をしてください。')}}
+window.addEventListener('pagehide',()=>saveData());
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveData()});
 function localDateStr(add=0){const d=new Date();d.setDate(d.getDate()+add);const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
 function jpDate(s){const d=new Date(s+'T00:00:00');return d.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',weekday:'short'})}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),1800)}
