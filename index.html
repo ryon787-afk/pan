@@ -1,44 +1,141 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1f8ecb">
-  <link rel="manifest" href="manifest.json?v=3.2.0">
-  <link rel="stylesheet" href="style.css?v=3.2.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>くぼちゃんパン管理システム</title>
+  <link rel="manifest" href="manifest.json?v=3.3.0" />
+  <link rel="stylesheet" href="style.css?v=3.3.0" />
+  <meta name="theme-color" content="#9ed8f0" />
 </head>
 <body>
-<div id="lock" class="lock hidden">
-  <div class="lock-card">
-    <h1>くぼちゃんパン管理システム</h1>
-    <p>パスワードを入力してください</p>
-    <input id="unlockPass" type="password" placeholder="パスワード">
-    <button class="primary" onclick="App.unlock()">開く</button>
+  <div id="passwordScreen" class="lock-screen hidden">
+    <div class="lock-card">
+      <div class="logo-mark">🐮</div>
+      <h1>くぼちゃんパン</h1>
+      <p>管理システムに入るにはパスワードを入力してください</p>
+      <input id="passwordInput" type="password" placeholder="パスワード" />
+      <button id="unlockBtn" class="primary">開く</button>
+    </div>
   </div>
-</div>
-<header class="app-header">
-  <div><h1>くぼちゃんパン管理</h1><small id="versionText">Ver.3.2.0</small></div>
-  <button class="ghost" onclick="Settings.forceUpdate()">最新版取得</button>
-</header>
-<div id="updateBanner" class="update hidden">新しい更新があります <button onclick="Settings.forceUpdate()">更新する</button></div>
-<main>
-  <section id="home" class="screen active">
-    <div class="dashboard" id="homeDashboard"></div>
-    <div class="panel compact"><h2>今日の製造リスト</h2><div id="homeProduction"></div></div>
-  </section>
-  <section id="reserve" class="screen">
-    <div class="panel"><h2>予約登録</h2><div class="form-grid"><input id="rDate" type="date"><input id="rTime" type="time"><input id="rName" placeholder="お客様名"></div><div id="itemRows"></div><button onclick="Reservation.addItemRow()">商品を追加</button><button class="primary" onclick="Reservation.save()">予約保存</button></div>
-    <div class="panel"><h2>予約一覧</h2><div class="form-grid"><input id="filterDate" type="date" oninput="Reservation.render()"><input id="searchName" placeholder="名前検索" oninput="Reservation.render()"></div><div id="reservationList"></div></div>
-  </section>
-  <section id="production" class="screen"><div class="panel"><h2>製造リスト</h2><input id="prodDate" type="date" oninput="Production.render()"><div id="productionList"></div><button onclick="Production.print()">印刷</button><button onclick="Production.line()">LINEで送る</button></div></section>
-  <section id="sales" class="screen"><div class="panel"><h2>販売売上</h2><div class="form-grid"><input id="sDate" type="date"><input id="storeSales" type="number" placeholder="店頭販売売上"><select id="weather"><option>晴れ</option><option>くもり</option><option>雨</option><option>雪</option><option>その他</option></select></div><textarea id="salesMemo" placeholder="メモ"></textarea><button class="primary" onclick="Sales.save()">保存</button><div id="salesSummary"></div></div></section>
-  <section id="analytics" class="screen"><div class="panel"><h2>分析</h2><div id="analyticsBody"></div><button onclick="Analytics.print()">印刷</button></div></section>
-  <section id="settings" class="screen"><div class="panel"><h2>設定</h2><div id="settingsBody"></div></div></section>
-</main>
-<nav class="bottom-nav">
-  <button onclick="App.show('home')">ホーム</button><button onclick="App.show('reserve')">予約</button><button onclick="App.show('production')">製造</button><button onclick="App.show('sales')">売上</button><button onclick="App.show('analytics')">分析</button><button onclick="App.show('settings')">設定</button>
-</nav>
-<script src="storage.js?v=3.2.0"></script><script src="reservation.js?v=3.2.0"></script><script src="sales.js?v=3.2.0"></script><script src="production.js?v=3.2.0"></script><script src="analytics.js?v=3.2.0"></script><script src="backup.js?v=3.2.0"></script><script src="settings.js?v=3.2.0"></script><script src="app.js?v=3.2.0"></script>
+
+  <div id="updateNotice" class="update-card hidden">
+    <div class="update-icon">✨</div>
+    <div>
+      <b>新しい更新があります</b>
+      <p id="updateText">最新版を取得できます。</p>
+    </div>
+    <div class="update-actions">
+      <button id="laterUpdateBtn" class="ghost">あとで</button>
+      <button id="applyUpdateBtn" class="primary small">更新する</button>
+    </div>
+  </div>
+
+  <header class="app-header">
+    <div>
+      <h1>🐮 くぼちゃんパン</h1>
+      <p id="todayLabel"></p>
+    </div>
+    <button id="refreshBtn" class="header-btn">最新版</button>
+  </header>
+
+  <main class="app-shell">
+    <section id="home" class="page active">
+      <div class="home-grid compact">
+        <div class="blue-card"><span>今日の予約</span><b id="homeReserveCount">0件</b></div>
+        <div class="blue-card"><span>予約金額</span><b id="homeReserveSales">¥0</b></div>
+        <div class="blue-card"><span>販売売上</span><b id="homeShopSales">¥0</b></div>
+        <div class="blue-card"><span>合計売上</span><b id="homeTotalSales">¥0</b></div>
+      </div>
+      <div class="card mini-section">
+        <h2>🍞 今日の製造リスト</h2>
+        <div id="homeProduction"></div>
+      </div>
+      <div class="card mini-section">
+        <h2>📅 去年の今日は？</h2>
+        <div id="lastYearBox" class="soft-text"></div>
+      </div>
+    </section>
+
+    <section id="reservation" class="page">
+      <div class="card">
+        <h2>📅 予約登録</h2>
+        <div class="form-grid">
+          <label>日付<input id="rDate" type="date"></label>
+          <label>受取時間<input id="rTime" type="time"></label>
+          <label>お客様名<input id="rName" placeholder="山田様"></label>
+          <label>状態<select id="rStatus"><option>未受取</option><option>受取済み</option><option>キャンセル</option></select></label>
+        </div>
+        <div id="itemRows"></div>
+        <button id="addItemBtn" class="ghost full">＋ 商品を追加</button>
+        <label>備考<textarea id="rNote" placeholder="6枚切り、袋分けなど"></textarea></label>
+        <button id="saveReserveBtn" class="primary full">予約を保存</button>
+      </div>
+      <div class="card">
+        <h2>予約一覧</h2>
+        <div class="form-grid"><label>日付検索<input id="filterDate" type="date"></label><label>名前検索<input id="filterName" placeholder="お客様名"></label></div>
+        <div id="reserveList"></div>
+      </div>
+    </section>
+
+    <section id="production" class="page">
+      <div class="card">
+        <h2>🍞 製造リスト</h2>
+        <label>日付<input id="productionDate" type="date"></label>
+        <div id="productionList"></div>
+        <button id="lineProductionBtn" class="primary full">LINEで送る</button>
+        <button id="printProductionBtn" class="ghost full">印刷</button>
+      </div>
+    </section>
+
+    <section id="sales" class="page">
+      <div class="card">
+        <h2>💰 販売売上</h2>
+        <div class="form-grid">
+          <label>日付<input id="saleDate" type="date"></label>
+          <label>店頭販売売上<input id="shopSale" type="number" min="0" placeholder="5000"></label>
+          <label>天気<select id="weather"><option>晴れ</option><option>くもり</option><option>雨</option><option>雪</option><option>強風</option><option>その他</option></select></label>
+          <label>来店人数<input id="visitors" type="number" min="0"></label>
+        </div>
+        <label>メモ<textarea id="saleMemo"></textarea></label>
+        <button id="saveSaleBtn" class="primary full">売上を保存</button>
+      </div>
+      <div class="card"><h2>日別売上一覧</h2><div id="salesList"></div></div>
+    </section>
+
+    <section id="analytics" class="page">
+      <div class="card"><h2>📊 分析</h2><div class="form-grid"><label>対象月<input id="analyticsMonth" type="month"></label><label>対象年<input id="analyticsYear" type="number"></label></div><div id="analyticsBox"></div></div>
+    </section>
+
+    <section id="settings" class="page">
+      <div class="card">
+        <h2>⚙️ 設定</h2>
+        <p class="soft-text">Ver. <b id="versionLabel">3.3.0</b></p>
+        <button id="forceUpdateBtn" class="primary full">最新版を取得</button>
+        <button id="clearCacheBtn" class="ghost full">キャッシュ削除</button>
+        <h3>パスワード</h3>
+        <label>新しいパスワード<input id="newPassword" type="password"></label>
+        <button id="savePasswordBtn" class="primary full">パスワードを設定</button>
+        <button id="removePasswordBtn" class="ghost full">パスワード解除</button>
+        <h3>バックアップ</h3>
+        <button id="backupBtn" class="primary full">データをファイル保存</button>
+        <label class="file-label">ファイルから復元<input id="restoreFile" type="file" accept="application/json"></label>
+        <h3>更新履歴</h3>
+        <div class="history"><b>Ver.3.3.0</b><br>・更新通知バグ修正<br>・8時間の再表示防止<br>・可愛い水色デザイン改善</div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button data-page="home" class="active">🏠<span>ホーム</span></button>
+    <button data-page="reservation">📅<span>予約</span></button>
+    <button data-page="production">🍞<span>製造</span></button>
+    <button data-page="sales">💰<span>売上</span></button>
+    <button data-page="analytics">📊<span>分析</span></button>
+    <button data-page="settings">⚙️<span>設定</span></button>
+  </nav>
+
+  <script src="storage.js?v=3.3.0"></script>
+  <script src="app.js?v=3.3.0"></script>
 </body>
 </html>
