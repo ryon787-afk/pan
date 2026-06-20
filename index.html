@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>くぼちゃんパン管理システム</title>
-  <link rel="manifest" href="manifest.json?v=3.3.1" />
-  <link rel="stylesheet" href="style.css?v=3.3.1" />
+  <link rel="manifest" href="manifest.json?v=3.3.2" />
+  <link rel="stylesheet" href="style.css?v=3.3.2" />
   <meta name="theme-color" content="#9ed8f0" />
 </head>
 <body>
@@ -111,18 +111,33 @@
     <section id="settings" class="page">
       <div class="card">
         <h2>⚙️ 設定</h2>
-        <p class="soft-text">Ver. <b id="versionLabel">3.3.1</b></p>
+        <p class="soft-text">Ver. <b id="versionLabel">3.3.2</b></p>
         <button id="forceUpdateBtn" class="primary full">最新版を取得</button>
         <button id="clearCacheBtn" class="ghost full">キャッシュ削除</button>
         <h3>パスワード</h3>
         <label>新しいパスワード<input id="newPassword" type="password"></label>
         <button id="savePasswordBtn" class="primary full">パスワードを設定</button>
         <button id="removePasswordBtn" class="ghost full">パスワード解除</button>
+        <h3>商品管理</h3>
+        <div class="product-form">
+          <input type="hidden" id="productEditId">
+          <div class="form-grid">
+            <label>商品名<input id="pName" placeholder="贅沢ミルク食パン"></label>
+            <label>カテゴリー<input id="pCategory" placeholder="食パン・ベーグルなど"></label>
+            <label>販売価格<input id="pPrice" type="number" min="0" placeholder="700"></label>
+            <label>販売状態<select id="pActive"><option value="on">販売中</option><option value="off">非表示</option></select></label>
+          </div>
+          <button id="saveProductBtn" class="primary full">商品を登録</button>
+          <button id="cancelProductEditBtn" class="ghost full hidden">商品編集をキャンセル</button>
+        </div>
+        <div id="productList" class="product-list"></div>
+        <button id="resetDefaultProductsBtn" class="ghost full">定番商品を追加</button>
+
         <h3>バックアップ</h3>
         <button id="backupBtn" class="primary full">データをファイル保存</button>
         <label class="file-label">ファイルから復元<input id="restoreFile" type="file" accept="application/json"></label>
         <h3>更新履歴</h3>
-        <div class="history"><b>Ver.3.3.1</b><br>・更新通知バグ修正<br>・8時間の再表示防止<br>・可愛い水色デザイン改善<br><br><b>Ver.3.3.1</b><br>・予約編集機能を修正<br>・複数商品の編集対応<br>・予約複製ボタン追加</div>
+        <div class="history"><b>Ver.3.3.2</b><br>・更新通知バグ修正<br>・8時間の再表示防止<br>・可愛い水色デザイン改善<br><br><b>Ver.3.3.2</b><br>・予約編集機能を修正<br>・複数商品の編集対応<br>・予約複製ボタン追加</div>
       </div>
     </section>
   </main>
@@ -136,7 +151,7 @@
     <button data-page="settings">⚙️<span>設定</span></button>
   </nav>
 
-  <script src="storage.js?v=3.3.1"></script>
-  <script src="app.js?v=3.3.1"></script>
+  <script src="storage.js?v=3.3.2"></script>
+  <script src="app.js?v=3.3.2"></script>
 </body>
 </html>
