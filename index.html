@@ -1,177 +1,83 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>くぼちゃんパン管理システム</title>
-  <link rel="manifest" href="manifest.json?v=3.3.7" />
-  <link rel="stylesheet" href="style.css?v=3.3.7" />
-  <meta name="theme-color" content="#9ed8f0" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#9edcf2">
+<link rel="manifest" href="manifest.json?v=338">
+<title>くぼちゃんパン管理システム Ver.3.3.8</title>
+<style>
+:root{--bg:#eaf8ff;--card:#fff;--blue:#55b7df;--blue2:#2f9fd0;--text:#18445c;--muted:#5f7d8e;--cream:#fff7d8;--line:#c8edf9;--danger:#e66b7a;--ok:#57b982;--shadow:0 8px 22px rgba(55,150,190,.15)}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eaf8ff,#f7fcff);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:var(--text);padding-bottom:78px}header{background:linear-gradient(135deg,#8eddf5,#50b9df);color:white;padding:16px 14px 12px;border-radius:0 0 24px 24px;box-shadow:var(--shadow);position:sticky;top:0;z-index:10}h1{margin:0;font-size:19px}.sub{font-size:12px;opacity:.95}.wrap{padding:12px;max-width:1080px;margin:auto}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:14px;margin:10px 0;box-shadow:var(--shadow)}.bluecard{background:linear-gradient(135deg,#65c7ea,#2497cc);color:white}.bluecard .muted,.bluecard label{color:#eaf9ff}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:rgba(255,255,255,.22);border-radius:16px;padding:10px}.stat b{display:block;font-size:20px;margin-top:3px}label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fbfeff;font-size:16px;color:var(--text)}textarea{min-height:72px}button{border:0;border-radius:16px;padding:12px 14px;background:var(--blue);color:white;font-weight:800;font-size:14px;box-shadow:0 4px 12px rgba(47,159,208,.16)}button.secondary{background:#e8f7fc;color:var(--text)}button.danger{background:var(--danger)}button.ok{background:var(--ok)}.tabs{position:fixed;bottom:0;left:0;right:0;background:#ffffffee;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:20}.tabs button{box-shadow:none;background:transparent;color:var(--muted);font-size:11px;padding:7px 2px;border-radius:14px}.tabs button.active{background:#dff5fd;color:var(--blue2)}h2{font-size:17px;margin:0 0 10px}.item{border-top:1px solid var(--line);padding:11px 0}.item:first-child{border-top:0}.muted{color:var(--muted);font-size:12px}.pill{display:inline-block;background:#e6f8ff;color:#1f83ad;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:700}.hidden{display:none}.prodrow{background:#f2fbff;border:1px solid var(--line);border-radius:18px;padding:10px;margin:8px 0}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.miniList{font-size:13px;line-height:1.7}.printOnly{display:none}.toast{position:fixed;left:14px;right:14px;bottom:84px;background:#18445c;color:white;border-radius:18px;padding:12px;text-align:center;z-index:40;box-shadow:var(--shadow)}.modal{position:fixed;inset:0;background:rgba(0,40,70,.25);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}.modalBox{background:white;border-radius:24px;padding:18px;max-width:520px;width:100%;box-shadow:var(--shadow)}
+@media(max-width:520px){.grid,.grid3{grid-template-columns:1fr}.wrap{padding:10px}.stat b{font-size:18px}header h1{font-size:18px}.card{border-radius:18px;padding:12px}.tabs{grid-template-columns:repeat(6,1fr)}button{width:100%}.row{flex-direction:column;align-items:stretch}}
+@media print{body{background:white;color:#111;padding:0}.tabs,header,button,.noPrint{display:none!important}.card{box-shadow:none;border:1px solid #bbb}.printOnly{display:block}.wrap{max-width:none}.hidden{display:block}}
+</style>
 </head>
 <body>
-  <div id="passwordScreen" class="lock-screen hidden">
-    <div class="lock-card">
-      <div class="logo-mark">🐮</div>
-      <h1>くぼちゃんパン</h1>
-      <p>管理システムに入るにはパスワードを入力してください</p>
-      <input id="passwordInput" type="password" placeholder="パスワード" />
-      <button id="unlockBtn" class="primary">開く</button>
-    </div>
-  </div>
-
-  <div id="updateNotice" class="update-card hidden">
-    <div class="update-icon">✨</div>
-    <div>
-      <b>新しい更新があります</b>
-      <p id="updateText">最新版を取得できます。</p>
-    </div>
-    <div class="update-actions">
-      <button id="laterUpdateBtn" class="ghost">あとで</button>
-      <button id="applyUpdateBtn" class="primary small">更新する</button>
-    </div>
-  </div>
-
-  <header class="app-header">
-    <div>
-      <h1>🐮 くぼちゃんパン</h1>
-      <p id="todayLabel"></p>
-    </div>
-    <button id="refreshBtn" class="header-btn">最新版</button>
-  </header>
-
-  <main class="app-shell">
-    <section id="home" class="page active">
-      <div class="home-grid compact">
-        <div class="blue-card"><span>今日の予約</span><b id="homeReserveCount">0件</b></div>
-        <div class="blue-card"><span>予約金額</span><b id="homeReserveSales">¥0</b></div>
-        <div class="blue-card"><span>販売売上</span><b id="homeShopSales">¥0</b></div>
-        <div class="blue-card"><span>合計売上</span><b id="homeTotalSales">¥0</b></div>
-      </div>
-      <div class="card mini-section">
-        <h2>🍞 今日の製造</h2>
-        <div id="homeProduction"></div>
-      </div>
-      <div class="card mini-section tomorrow-card">
-        <h2>🥐 明日の製造</h2>
-        <div id="homeTomorrowProduction"></div>
-      </div>
-      <div class="card mini-section">
-        <h2>📅 去年の今日は？</h2>
-        <div id="lastYearBox" class="soft-text"></div>
-      </div>
-    </section>
-
-    <section id="reservation" class="page">
-      <div class="card">
-        <h2>📅 予約登録</h2>
-        <div class="form-grid">
-          <label>日付<input id="rDate" type="date"></label>
-          <label>受取時間<input id="rTime" type="time"></label>
-          <label>お客様名<input id="rName" placeholder="山田様"></label>
-          <label>状態<select id="rStatus"><option>未受取</option><option>受取済み</option><option>キャンセル</option></select></label>
-        </div>
-        <div id="itemRows"></div>
-        <button id="addItemBtn" class="ghost full">＋ 商品を追加</button>
-        <label>備考<textarea id="rNote" placeholder="6枚切り、袋分けなど"></textarea></label>
-        <button id="saveReserveBtn" class="primary full">予約を保存</button>
-        <button id="cancelEditBtn" class="ghost full hidden">編集をキャンセル</button>
-      </div>
-      <div class="card">
-        <h2>予約一覧</h2>
-        <div class="form-grid"><label>日付検索<input id="filterDate" type="date"></label><label>名前検索<input id="filterName" placeholder="お客様名"></label></div>
-        <div id="reserveList"></div>
-      </div>
-    </section>
-
-    <section id="production" class="page">
-      <div class="card">
-        <h2>🍞 製造リスト</h2>
-        <h3>今日・指定日の製造</h3>
-        <label>日付<input id="productionDate" type="date"></label>
-        <div id="productionList"></div>
-        <h3>🥐 明日の製造</h3>
-        <div id="productionTomorrowList"></div>
-        <button id="lineProductionBtn" class="primary full">指定日の製造をLINEで送る</button>
-        <button id="printProductionBtn" class="ghost full">印刷</button>
-      </div>
-    </section>
-
-    <section id="sales" class="page">
-      <div class="card">
-        <h2>💰 販売売上</h2>
-        <div class="form-grid">
-          <label>日付<input id="saleDate" type="date"></label>
-          <label>店頭販売売上<input id="shopSale" type="number" min="0" placeholder="5000"></label>
-          <label>天気<select id="weather"><option>晴れ</option><option>くもり</option><option>雨</option><option>雪</option><option>強風</option><option>その他</option></select></label>
-          <label>来店人数<input id="visitors" type="number" min="0"></label>
-        </div>
-        <label>メモ<textarea id="saleMemo"></textarea></label>
-        <button id="saveSaleBtn" class="primary full">売上を保存</button>
-      </div>
-      <div class="card"><h2>日別売上一覧</h2><div id="salesList"></div></div>
-    </section>
-
-    <section id="analytics" class="page">
-      <div class="card">
-        <h2>📊 分析</h2>
-        <div class="form-grid">
-          <label>対象月<input id="analyticsMonth" type="month"></label>
-          <label>対象年<input id="analyticsYear" type="number"></label>
-        </div>
-        <h3>月間商品ランキング</h3>
-        <div id="analyticsBox"></div>
-      </div>
-      <div class="card">
-        <h2>📅 日にち別の販売分析</h2>
-        <p class="soft-text">対象月の日ごとに、売れたパン・天気・販売売上・メモを確認できます。</p>
-        <div id="dailyAnalysisBox"></div>
-      </div>
-    </section>
-
-    <section id="settings" class="page">
-      <div class="card">
-        <h2>⚙️ 設定</h2>
-        <p class="soft-text">Ver. <b id="versionLabel">3.3.7</b></p>
-        <button id="forceUpdateBtn" class="primary full">最新版を取得</button>
-        <button id="clearCacheBtn" class="ghost full">キャッシュ削除</button>
-        <h3>パスワード</h3>
-        <label>新しいパスワード<input id="newPassword" type="password"></label>
-        <button id="savePasswordBtn" class="primary full">パスワードを設定</button>
-        <button id="removePasswordBtn" class="ghost full">パスワード解除</button>
-        <h3>商品管理</h3>
-        <div class="product-form">
-          <input type="hidden" id="productEditId">
-          <div class="form-grid">
-            <label>商品名<input id="pName" placeholder="贅沢ミルク食パン"></label>
-            <label>カテゴリー<input id="pCategory" placeholder="食パン・ベーグルなど"></label>
-            <label>販売価格<input id="pPrice" type="number" min="0" placeholder="700"></label>
-            <label>販売状態<select id="pActive"><option value="on">販売中</option><option value="off">非表示</option></select></label>
-          </div>
-          <button id="saveProductBtn" class="primary full">商品を登録</button>
-          <button id="cancelProductEditBtn" class="ghost full hidden">商品編集をキャンセル</button>
-        </div>
-        <div id="productList" class="product-list"></div>
-        <button id="resetDefaultProductsBtn" class="ghost full">定番商品を追加</button>
-
-        <h3>バックアップ</h3>
-        <button id="backupBtn" class="primary full">データをファイル保存</button>
-        <label class="file-label">ファイルから復元<input id="restoreFile" type="file" accept="application/json"></label>
-        <h3>更新履歴</h3>
-        <div class="history"><b>Ver.3.3.7</b><br>・今日の製造／明日の製造を予約日ごとに完全分離<br>・日付計算を日本時間基準に修正<br><br><b>Ver.3.3.4</b><br>・予約保存後の入力フォームリセット<br><br><b>Ver.3.3.3</b><br>・商品管理復活／今日・明日の製造追加</div>
-      </div>
-    </section>
-  </main>
-
-  <nav class="bottom-nav">
-    <button data-page="home" class="active">🏠<span>ホーム</span></button>
-    <button data-page="reservation">📅<span>予約</span></button>
-    <button data-page="production">🍞<span>製造</span></button>
-    <button data-page="sales">💰<span>売上</span></button>
-    <button data-page="analytics">📊<span>分析</span></button>
-    <button data-page="settings">⚙️<span>設定</span></button>
-  </nav>
-
-  <script src="storage.js?v=3.3.7"></script>
-  <script src="app.js?v=3.3.7"></script>
-</body>
-</html>
+<header><h1>🐮 くぼちゃんパン管理システム</h1><div class="sub">Ver.3.3.8｜個人情報は端末内保存</div></header>
+<main class="wrap">
+<section id="home" class="tabPage">
+ <div class="card bluecard"><h2>🏠 今日のまとめ</h2><div class="grid3"><div class="stat">予約件数<b id="hCount">0件</b></div><div class="stat">予約売上<b id="hReserve">¥0</b></div><div class="stat">店頭売上<b id="hShop">¥0</b></div><div class="stat">合計売上<b id="hTotal">¥0</b></div><div class="stat">未受取<b id="hWait">0件</b></div><div class="stat">製造品目<b id="hProdCount">0種</b></div></div></div>
+ <div class="grid"><div class="card"><h2>🍞 今日の製造</h2><div id="homeTodayProd"></div></div><div class="card"><h2>🥐 明日の製造</h2><div id="homeTomorrowProd"></div></div></div>
+ <div class="card"><h2>📅 今日の予約</h2><div id="homeReservations"></div></div>
+</section>
+<section id="reserve" class="tabPage hidden"><div class="card"><h2 id="reserveTitle">📅 予約登録</h2><div class="grid"><div><label>日付</label><input type="date" id="rDate"></div><div><label>受取時間</label><input type="time" id="rTime"></div></div><label>お客様名</label><input id="rName" placeholder="例：山田様"><div id="productRows"></div><button onclick="addProductRow()">＋ 商品を追加</button><label>備考</label><textarea id="rNote"></textarea><label>状況</label><select id="rStatus"><option>未受取</option><option>受取済み</option><option>キャンセル</option></select><div class="card bluecard"><div>合計金額 <b id="rTotal">¥0</b></div></div><button class="ok" onclick="saveReservation()">予約を保存</button><button class="secondary hidden" id="cancelEditBtn" onclick="cancelEdit()">編集をやめる</button></div><div class="card"><h2>予約一覧</h2><div class="grid"><input type="date" id="filterDate" onchange="render()"><input id="searchName" placeholder="名前検索" oninput="render()"></div><div id="reservationList"></div></div></section>
+<section id="production" class="tabPage hidden"><div class="card"><h2>🍞 今日の製造</h2><div id="prodToday"></div><button onclick="shareLine(productionText(localDateStr(0),'今日の製造'))">LINEで送る</button><button class="secondary" onclick="window.print()">印刷</button></div><div class="card"><h2>🥐 明日の製造</h2><div id="prodTomorrow"></div><button onclick="shareLine(productionText(localDateStr(1),'明日の製造'))">LINEで送る</button></div></section>
+<section id="sales" class="tabPage hidden"><div class="card"><h2>💰 店頭販売売上</h2><div class="grid"><div><label>日付</label><input type="date" id="sDate"></div><div><label>店頭販売売上</label><input type="number" id="sShop" min="0"></div></div><div class="grid"><div><label>天気</label><select id="sWeather"><option>晴れ</option><option>くもり</option><option>雨</option><option>雪</option><option>強風</option><option>猛暑</option><option>寒い</option><option>その他</option></select></div><div><label>来店人数</label><input type="number" id="sCustomers" min="0"></div></div><label>メモ</label><textarea id="sMemo"></textarea><button onclick="saveSale()">売上を保存</button></div><div class="card"><h2>売上一覧</h2><div id="salesList"></div></div></section>
+<section id="analytics" class="tabPage hidden"><div class="card bluecard"><h2>📊 月別分析</h2><label>対象月</label><input type="month" id="aMonth" onchange="renderAnalytics()"><div class="grid3"><div class="stat">合計売上<b id="aMonthTotal">¥0</b></div><div class="stat">予約売上<b id="aReserveTotal">¥0</b></div><div class="stat">店頭売上<b id="aShopTotal">¥0</b></div><div class="stat">営業日数<b id="aDays">0日</b></div><div class="stat">1日平均<b id="aAvg">¥0</b></div><div class="stat">一番売れたパン<b id="aTop">-</b></div></div></div><div class="card"><h2>日にち別詳細</h2><div id="dailyAnalytics"></div></div></section>
+<section id="settings" class="tabPage hidden"><div class="card"><h2>⚙️ 商品管理</h2><div class="grid"><input id="pName" placeholder="商品名"><input id="pPrice" type="number" placeholder="価格"></div><div class="grid"><input id="pCat" placeholder="カテゴリー"><select id="pActive"><option value="true">販売中</option><option value="false">非表示</option></select></div><button onclick="saveProduct()">商品を登録</button><button class="secondary" onclick="restoreDefaultProducts()">初期商品を復元</button><div id="productList"></div></div><div class="card"><h2>💾 データ</h2><button onclick="backup()">バックアップ保存</button><input type="file" id="restoreFile" onchange="restore(event)"><button class="secondary" onclick="hardRefresh()">最新版を取得</button><button class="secondary" onclick="clearCache()">キャッシュ削除</button></div><div class="card"><h2>🔐 パスワード</h2><input id="pwNew" type="password" placeholder="新しいパスワード"><button onclick="setPassword()">設定・変更</button><button class="danger" onclick="removePassword()">解除</button></div></section>
+</main>
+<nav class="tabs"><button class="active" onclick="showTab('home',this)">🏠<br>ホーム</button><button onclick="showTab('reserve',this)">📅<br>予約</button><button onclick="showTab('production',this)">🍞<br>製造</button><button onclick="showTab('sales',this)">💰<br>売上</button><button onclick="showTab('analytics',this)">📊<br>分析</button><button onclick="showTab('settings',this)">⚙️<br>設定</button></nav>
+<div id="modalRoot"></div><div id="toast" class="toast hidden"></div>
+<script>
+const APP_VERSION='3.3.8';
+const yen=n=>'¥'+Number(n||0).toLocaleString('ja-JP');
+const STORE='kubochan_pan_v338_data';let editId=null;
+const defaultProducts=[['贅沢ミルク食パン',700,'食パン'],['ベーグルサンド',370,'ベーグル'],['クロワッサン',300,'菓子パン'],['あんバター',330,'菓子パン'],['あんフロマージュ',330,'菓子パン'],['ミルク屋さんのメロンパン',250,'菓子パン'],['ミルク屋さんのクリームパン',250,'菓子パン'],['塩バターベーグル',250,'ベーグル'],['ブルーベリーチーズベーグル',250,'ベーグル'],['チョコカスタードベーグル',250,'ベーグル'],['ごほうびチーズケーキ',450,'チーズケーキ']];
+let data=loadData();
+function loadData(){let d=JSON.parse(localStorage.getItem(STORE)||'null')||{};d.reservations=d.reservations||[];d.sales=d.sales||[];d.products=d.products||defaultProducts.map((p,i)=>({id:Date.now()+i,name:p[0],price:p[1],cat:p[2],active:true}));d.password=d.password||'';return d}
+function saveData(){localStorage.setItem(STORE,JSON.stringify(data))}
+function localDateStr(add=0){const d=new Date();d.setDate(d.getDate()+add);const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
+function jpDate(s){const d=new Date(s+'T00:00:00');return d.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',weekday:'short'})}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),1800)}
+function showTab(id,btn){document.querySelectorAll('.tabPage').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');render()}
+function productOptions(sel=''){return data.products.filter(p=>p.active!==false).map(p=>`<option value="${p.id}" ${String(sel)===String(p.id)?'selected':''}>${esc(p.name)} / ${yen(p.price)}</option>`).join('')}
+function addProductRow(item={}){const div=document.createElement('div');div.className='prodrow';div.innerHTML=`<div class="grid"><div><label>商品</label><select onchange="applyProduct(this)"><option value="">選択</option>${productOptions(item.productId)}</select></div><div><label>個数</label><input type="number" min="1" value="${item.qty||1}" oninput="calcTotal()"></div></div><div class="grid"><div><label>商品名</label><input value="${esc(item.name||'')}" placeholder="商品名"></div><div><label>単価</label><input type="number" min="0" value="${item.price||0}" oninput="calcTotal()"></div></div><button class="danger" onclick="this.parentElement.remove();calcTotal()">商品を削除</button>`;document.getElementById('productRows').appendChild(div);calcTotal()}
+function applyProduct(sel){const p=data.products.find(x=>String(x.id)===String(sel.value));if(!p)return;const row=sel.closest('.prodrow');row.querySelectorAll('input')[1].value=p.name;row.querySelectorAll('input')[2].value=p.price;calcTotal()}
+function readRows(){return [...document.querySelectorAll('.prodrow')].map(row=>{const ins=row.querySelectorAll('input');const sel=row.querySelector('select');return {productId:sel.value||'',qty:Number(ins[0].value||1),name:ins[1].value.trim(),price:Number(ins[2].value||0)}}).filter(x=>x.name&&x.qty>0)}
+function calcTotal(){const total=readRows().reduce((a,x)=>a+x.qty*x.price,0);document.getElementById('rTotal').textContent=yen(total);return total}
+function saveReservation(){const items=readRows();if(!rDate.value||!rName.value.trim()||!items.length){toast('日付・名前・商品を入力してください');return}const obj={id:editId||Date.now(),date:rDate.value,time:rTime.value,name:rName.value.trim(),items,note:rNote.value.trim(),status:rStatus.value,total:calcTotal(),updatedAt:new Date().toISOString()};if(editId){data.reservations=data.reservations.map(r=>r.id===editId?obj:r)}else data.reservations.push(obj);saveData();resetReserveForm(true);render();toast(editId?'予約を変更しました':'予約を保存しました')}
+function resetReserveForm(keepDate){editId=null;reserveTitle.textContent='📅 予約登録';rName.value='';rTime.value='';rNote.value='';rStatus.value='未受取';productRows.innerHTML='';addProductRow();cancelEditBtn.classList.add('hidden');if(!keepDate)rDate.value=localDateStr();rName.focus();calcTotal()}
+function editReservation(id){const r=data.reservations.find(x=>x.id===id);if(!r)return;showTab('reserve',document.querySelectorAll('.tabs button')[1]);editId=id;reserveTitle.textContent='✏️ 予約編集';rDate.value=r.date;rTime.value=r.time||'';rName.value=r.name;rNote.value=r.note||'';rStatus.value=r.status||'未受取';productRows.innerHTML='';(r.items||[]).forEach(addProductRow);cancelEditBtn.classList.remove('hidden');calcTotal();window.scrollTo({top:0,behavior:'smooth'})}
+function duplicateReservation(id){const r=data.reservations.find(x=>x.id===id);if(!r)return;const n={...JSON.parse(JSON.stringify(r)),id:Date.now(),date:localDateStr(),status:'未受取'};data.reservations.push(n);saveData();render();toast('今日の日付で複製しました')}
+function cancelEdit(){resetReserveForm(true)}
+function delReservation(id){if(confirm('削除しますか？')){data.reservations=data.reservations.filter(r=>r.id!==id);saveData();render()}}
+function setStatus(id,v){const r=data.reservations.find(x=>x.id===id);if(r){r.status=v;saveData();render()}}
+function reservationsByDate(date){return data.reservations.filter(r=>r.date===date)}
+function productionForDate(date){const map={};reservationsByDate(date).filter(r=>r.status!=='キャンセル').forEach(r=>(r.items||[]).forEach(it=>{const key=it.name;map[key]=map[key]||{qty:0,details:[]};map[key].qty+=Number(it.qty||0);map[key].details.push(`${r.time||'時間未定'} ${r.name}：${it.qty}`)}));return map}
+function renderProduction(map){const keys=Object.keys(map).sort();if(!keys.length)return '<div class="muted">製造はありません</div>';return keys.map(k=>`<div class="item"><b>${esc(k)}　${map[k].qty}個</b><div class="miniList">${map[k].details.map(esc).join('<br>')}</div></div>`).join('')}
+function reservationHtml(r){return `<div class="item"><b>${esc(r.name)}</b> <span class="pill">${esc(r.status)}</span><div class="muted">${jpDate(r.date)} ${r.time||''} / ${yen(r.total)}</div><div>${(r.items||[]).map(it=>`${esc(it.name)}×${it.qty}`).join('、')}</div>${r.note?`<div class="muted">📝 ${esc(r.note)}</div>`:''}<div class="row"><select onchange="setStatus(${r.id},this.value)"><option ${r.status==='未受取'?'selected':''}>未受取</option><option ${r.status==='受取済み'?'selected':''}>受取済み</option><option ${r.status==='キャンセル'?'selected':''}>キャンセル</option></select><button onclick="editReservation(${r.id})">編集</button><button class="secondary" onclick="duplicateReservation(${r.id})">複製</button><button class="danger" onclick="delReservation(${r.id})">削除</button></div></div>`}
+function saveSale(){const s={date:sDate.value,shop:Number(sShop.value||0),weather:sWeather.value,customers:Number(sCustomers.value||0),memo:sMemo.value.trim()};data.sales=data.sales.filter(x=>x.date!==s.date);data.sales.push(s);saveData();render();toast('売上を保存しました')}
+function saleForDate(date){return data.sales.find(s=>s.date===date)||{date,shop:0,weather:'',customers:0,memo:''}}
+function reservationSales(date){return reservationsByDate(date).filter(r=>r.status!=='キャンセル').reduce((a,r)=>a+Number(r.total||0),0)}
+function productStatsForDate(date){const m={};reservationsByDate(date).filter(r=>r.status!=='キャンセル').forEach(r=>(r.items||[]).forEach(it=>{m[it.name]=m[it.name]||{qty:0,sales:0};m[it.name].qty+=Number(it.qty||0);m[it.name].sales+=Number(it.qty||0)*Number(it.price||0)}));return m}
+function renderAnalytics(){const ym=aMonth.value;if(!ym)return;const days=new Date(Number(ym.slice(0,4)),Number(ym.slice(5,7)),0).getDate();let total=0,reserve=0,shop=0,biz=0,allProd={};let html='';for(let d=1;d<=days;d++){const date=`${ym}-${String(d).padStart(2,'0')}`;const rs=reservationSales(date),sale=saleForDate(date),dayTotal=rs+Number(sale.shop||0),stats=productStatsForDate(date);if(dayTotal>0||Object.keys(stats).length||sale.memo){biz++}total+=dayTotal;reserve+=rs;shop+=Number(sale.shop||0);Object.entries(stats).forEach(([k,v])=>{allProd[k]=allProd[k]||{qty:0,sales:0};allProd[k].qty+=v.qty;allProd[k].sales+=v.sales});const top=Object.entries(stats).sort((a,b)=>b[1].qty-a[1].qty)[0];html+=`<div class="item"><b>${jpDate(date)}</b> <span class="pill">${esc(sale.weather||'天気未入力')}</span><div>合計 ${yen(dayTotal)} / 予約 ${yen(rs)} / 店頭 ${yen(sale.shop||0)}</div><div class="miniList">${Object.keys(stats).length?Object.entries(stats).map(([k,v])=>`${esc(k)} ${v.qty}個`).join('<br>'):'販売商品データなし'}</div><div class="muted">一番売れたパン：${top?esc(top[0])+' '+top[1].qty+'個':'-'}</div>${sale.memo?`<details><summary>📝 メモあり！</summary><div>${esc(sale.memo)}</div></details>`:''}</div>`}
+const topMonth=Object.entries(allProd).sort((a,b)=>b[1].qty-a[1].qty)[0];aMonthTotal.textContent=yen(total);aReserveTotal.textContent=yen(reserve);aShopTotal.textContent=yen(shop);aDays.textContent=biz+'日';aAvg.textContent=yen(biz?Math.round(total/biz):0);aTop.textContent=topMonth?`${topMonth[0]} ${topMonth[1].qty}個`:'-';dailyAnalytics.innerHTML=html||'<div class="muted">データがありません</div>'}
+function saveProduct(){const name=pName.value.trim();if(!name)return toast('商品名を入力してください');data.products.push({id:Date.now(),name,price:Number(pPrice.value||0),cat:pCat.value.trim()||'その他',active:pActive.value==='true'});saveData();pName.value='';pPrice.value='';pCat.value='';render();toast('商品を登録しました')}
+function delProduct(id){data.products=data.products.filter(p=>p.id!==id);saveData();render()}
+function toggleProduct(id){const p=data.products.find(x=>x.id===id);p.active=!p.active;saveData();render()}
+function restoreDefaultProducts(){if(confirm('初期商品を追加しますか？')){defaultProducts.forEach((p,i)=>data.products.push({id:Date.now()+i,name:p[0],price:p[1],cat:p[2],active:true}));saveData();render()}}
+function backup(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kubochan-pan-backup-'+localDateStr()+'.json';a.click()}
+function restore(e){const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{data=JSON.parse(rd.result);saveData();render();toast('復元しました')};rd.readAsText(f)}
+function shareLine(text){location.href='https://line.me/R/msg/text/?'+encodeURIComponent(text)}
+function productionText(date,title){const m=productionForDate(date);return `${title} ${date}\n`+Object.entries(m).map(([k,v])=>`${k} ${v.qty}個`).join('\n')}
+async function clearCache(){if('caches'in window){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}toast('キャッシュを削除しました')}
+async function hardRefresh(){await clearCache();location.reload(true)}
+function setPassword(){data.password=pwNew.value;saveData();pwNew.value='';toast('パスワードを設定しました')}
+function removePassword(){data.password='';saveData();toast('パスワードを解除しました')}
+function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function render(){const today=localDateStr(),tom=localDateStr(1);const tr=reservationsByDate(today),ts=saleForDate(today);hCount.textContent=tr.length+'件';hReserve.textContent=yen(reservationSales(today));hShop.textContent=yen(ts.shop||0);hTotal.textContent=yen(reservationSales(today)+Number(ts.shop||0));hWait.textContent=tr.filter(r=>r.status==='未受取').length+'件';const pm=productionForDate(today);hProdCount.textContent=Object.keys(pm).length+'種';homeTodayProd.innerHTML=renderProduction(pm);homeTomorrowProd.innerHTML=renderProduction(productionForDate(tom));homeReservations.innerHTML=tr.length?tr.map(reservationHtml).join(''):'<div class="muted">今日の予約はありません</div>';prodToday.innerHTML=renderProduction(pm);prodTomorrow.innerHTML=renderProduction(productionForDate(tom));const fd=filterDate.value,sn=searchName.value.trim();let list=data.reservations.filter(r=>(!fd||r.date===fd)&&(!sn||r.name.includes(sn))).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));reservationList.innerHTML=list.map(reservationHtml).join('')||'<div class="muted">予約がありません</div>';salesList.innerHTML=data.sales.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(s=>`<div class="item"><b>${jpDate(s.date)}</b> ${yen(s.shop)} <span class="pill">${esc(s.weather)}</span>${s.memo?'<div>📝 メモあり！</div>':''}</div>`).join('')||'<div class="muted">売上データがありません</div>';productList.innerHTML=data.products.map(p=>`<div class="item"><b>${esc(p.name)}</b> ${yen(p.price)} <span class="pill">${esc(p.cat||'')}</span><div class="row"><button class="secondary" onclick="toggleProduct(${p.id})">${p.active?'販売中':'非表示'}</button><button class="danger" onclick="delProduct(${p.id})">削除</button></div></div>`).join('');renderAnalytics()}
+function init(){rDate.value=localDateStr();filterDate.value=localDateStr();sDate.value=localDateStr();aMonth.value=localDateStr().slice(0,7);addProductRow();if(data.password){const p=prompt('パスワードを入力してください');if(p!==data.password){document.body.innerHTML='<main class="wrap"><div class="card"><h2>パスワードが違います</h2></div></main>';return}}render();if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=338')}
+init();
+</script>
+</body></html>
