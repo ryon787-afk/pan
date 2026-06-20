@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>くぼちゃんパン管理システム</title>
-  <link rel="manifest" href="manifest.json?v=3.3.2" />
-  <link rel="stylesheet" href="style.css?v=3.3.2" />
+  <link rel="manifest" href="manifest.json?v=3.3.3" />
+  <link rel="stylesheet" href="style.css?v=3.3.3" />
   <meta name="theme-color" content="#9ed8f0" />
 </head>
 <body>
@@ -48,8 +48,12 @@
         <div class="blue-card"><span>合計売上</span><b id="homeTotalSales">¥0</b></div>
       </div>
       <div class="card mini-section">
-        <h2>🍞 今日の製造リスト</h2>
+        <h2>🍞 今日の製造</h2>
         <div id="homeProduction"></div>
+      </div>
+      <div class="card mini-section tomorrow-card">
+        <h2>🥐 明日の製造</h2>
+        <div id="homeTomorrowProduction"></div>
       </div>
       <div class="card mini-section">
         <h2>📅 去年の今日は？</h2>
@@ -82,9 +86,12 @@
     <section id="production" class="page">
       <div class="card">
         <h2>🍞 製造リスト</h2>
+        <h3>今日・指定日の製造</h3>
         <label>日付<input id="productionDate" type="date"></label>
         <div id="productionList"></div>
-        <button id="lineProductionBtn" class="primary full">LINEで送る</button>
+        <h3>🥐 明日の製造</h3>
+        <div id="productionTomorrowList"></div>
+        <button id="lineProductionBtn" class="primary full">指定日の製造をLINEで送る</button>
         <button id="printProductionBtn" class="ghost full">印刷</button>
       </div>
     </section>
@@ -111,7 +118,7 @@
     <section id="settings" class="page">
       <div class="card">
         <h2>⚙️ 設定</h2>
-        <p class="soft-text">Ver. <b id="versionLabel">3.3.2</b></p>
+        <p class="soft-text">Ver. <b id="versionLabel">3.3.3</b></p>
         <button id="forceUpdateBtn" class="primary full">最新版を取得</button>
         <button id="clearCacheBtn" class="ghost full">キャッシュ削除</button>
         <h3>パスワード</h3>
@@ -137,7 +144,7 @@
         <button id="backupBtn" class="primary full">データをファイル保存</button>
         <label class="file-label">ファイルから復元<input id="restoreFile" type="file" accept="application/json"></label>
         <h3>更新履歴</h3>
-        <div class="history"><b>Ver.3.3.2</b><br>・更新通知バグ修正<br>・8時間の再表示防止<br>・可愛い水色デザイン改善<br><br><b>Ver.3.3.2</b><br>・予約編集機能を修正<br>・複数商品の編集対応<br>・予約複製ボタン追加</div>
+        <div class="history"><b>Ver.3.3.3</b><br>・更新通知バグ修正<br>・8時間の再表示防止<br>・可愛い水色デザイン改善<br><br><b>Ver.3.3.3</b><br>・予約編集機能を修正<br>・複数商品の編集対応<br>・予約複製ボタン追加</div>
       </div>
     </section>
   </main>
@@ -151,7 +158,7 @@
     <button data-page="settings">⚙️<span>設定</span></button>
   </nav>
 
-  <script src="storage.js?v=3.3.2"></script>
-  <script src="app.js?v=3.3.2"></script>
+  <script src="storage.js?v=3.3.3"></script>
+  <script src="app.js?v=3.3.3"></script>
 </body>
 </html>

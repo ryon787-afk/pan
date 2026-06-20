@@ -5,3 +5,8 @@
 @media print{body{background:white;color:#111;padding:0}.app-header,.bottom-nav,.update-card,button,.lock-screen{display:none!important}.page{display:block!important}.card{box-shadow:none;border:1px solid #999;color:#111}.blue-card{background:white;color:#111;border:1px solid #999;box-shadow:none}}
 
 .product-card.inactive-product{opacity:.62;background:#f6f6f6}.product-form{background:#f4fbff;border:1px solid var(--line);border-radius:18px;padding:10px;margin:8px 0}.product-list .list-card b{font-size:15px}
+/* Ver.3.3.3 今日・明日の製造表示 */
+.tomorrow-card{border-color:#b9e5f6;background:linear-gradient(180deg,#ffffff,#f5fbff)}
+.home-prod-detail{font-size:11px;margin:-4px 0 4px;color:#6b8aa0;line-height:1.45}
+#homeProduction .prod-line,#homeTomorrowProduction .prod-line{padding:5px 0}
+#productionTomorrowList{margin-top:4px}
