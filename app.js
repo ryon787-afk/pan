@@ -1,211 +1,145 @@
-const STORAGE_KEY = 'bakeryAppDataV2';
-const today = () => new Date().toISOString().slice(0, 10);
-const yen = value => `${Number(value || 0).toLocaleString()}円`;
+// ★ここにApps ScriptのWebアプリURLを入れてください
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyFvv%7CtuhnpViipxC_vhTtWk5REmQEF-Xgdo0U9WAM4fMzVXrn31Zk630qjtgoG/exec";
 
-let data = loadData();
+const yen = n => '¥' + Number(n||0).toLocaleString('ja-JP');
+const today = () => new Date().toISOString().slice(0,10);
+const $ = id => document.getElementById(id);
+let reservations = [];
+let sales = [];
+let products = [];
 
-function loadData() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) return JSON.parse(saved);
-  return {
-    products: [
-      { id: crypto.randomUUID(), name: '食パン', price: 320, category: '食パン' },
-      { id: crypto.randomUUID(), name: 'あんぱん', price: 180, category: '菓子パン' },
-      { id: crypto.randomUUID(), name: 'クロワッサン', price: 260, category: 'デニッシュ' }
-    ],
-    reservations: [],
-    sales: []
-  };
+const defaultProducts = [
+  {name:'贅沢ミルク食パン',price:700,note:''},
+  {name:'ベーグルサンド',price:370,note:''},
+  {name:'クロワッサン',price:300,note:''},
+  {name:'あんバター',price:330,note:''},
+  {name:'あんフロマージュ',price:330,note:''},
+  {name:'ミルク屋さんのメロンパン',price:250,note:''},
+  {name:'ミルク屋さんのクリームパン',price:250,note:''},
+  {name:'ツナチーズベーグル',price:250,note:''},
+  {name:'ブルーベリーチーズベーグル',price:250,note:''},
+  {name:'チョコカスタードベーグル',price:250,note:''},
+  {name:'まんまるあんぱん',price:250,note:''},
+  {name:'明太ベーコンエピ',price:250,note:''},
+  {name:'明太フランス',price:250,note:''},
+  {name:'塩バターベーグル',price:250,note:''},
+  {name:'ごほうびチーズケーキ',price:450,note:''}
+];
+
+function isGasReady(){return GAS_URL && GAS_URL.startsWith('https://script.google.com/');}
+function setStatus(text){$('syncStatus').textContent = text;}
+async function api(action, payload={}){
+  if(!isGasReady()) throw new Error('Apps Script URLが未設定です');
+  const res = await fetch(GAS_URL, {method:'POST', body: JSON.stringify({action, ...payload})});
+  const json = await res.json();
+  if(!json.ok) throw new Error(json.error || '保存に失敗しました');
+  return json;
 }
 
-function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+async function loadAll(){
+  if(!isGasReady()){
+    setStatus('共有モード：Apps Script URL未設定');
+    products = defaultProducts;
+    render();
+    return;
+  }
+  try{
+    setStatus('共有データを読み込み中...');
+    const json = await api('list');
+    reservations = json.reservations || [];
+    sales = json.sales || [];
+    products = (json.products && json.products.length) ? json.products : defaultProducts;
+    setStatus('共有モード：接続中');
+    render();
+  }catch(err){
+    setStatus('共有エラー：' + err.message);
+    alert('読み込みエラー：' + err.message);
+    products = defaultProducts;
+    render();
+  }
+}
+
+function showTab(id, btn){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));
+  $(id).classList.remove('hidden');
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
   render();
 }
-
-function setDefaultDates() {
-  reservationDate.value = today();
-  salesDate.value = today();
+function updateProductSelect(){
+  $('rProduct').innerHTML='<option value="">商品を選択</option>'+products.map((p,i)=>`<option value="${i}">${escapeHtml(p.name)} / ${yen(p.price)}</option>`).join('');
+  $('quickProducts').innerHTML=products.length?products.map((p,i)=>`<button type="button" onclick="selectQuickProduct(${i})"><b>${escapeHtml(p.name)}</b><br><span class="mini">${yen(p.price)} ${escapeHtml(p.note||'')}</span></button>`).join(''):'<div class="empty">商品登録から商品を追加してください</div>';
 }
-
-function switchScreen(id) {
-  document.querySelectorAll('.tab').forEach(tab => tab.classList.toggle('active', tab.dataset.screen === id));
-  document.querySelectorAll('.screen').forEach(screen => screen.classList.toggle('active-screen', screen.id === id));
+function applyProductToReservation(){
+  const p=products[Number($('rProduct').value)];
+  if(!p)return;
+  $('rItem').value=p.name;
+  $('rUnitPrice').value=p.price;
+  calcReservationAmount();
 }
+function selectQuickProduct(i){$('rProduct').value=i;applyProductToReservation();window.scrollTo({top:80,behavior:'smooth'});}
+function calcReservationAmount(){$('rAmount').value = Number($('rUnitPrice').value||0) * Number($('rQty').value||1);}
+async function addReservation(){
+  const data={date:$('rDate').value,time:$('rTime').value,name:$('rName').value.trim(),item:$('rItem').value.trim(),unitPrice:Number($('rUnitPrice').value||0),qty:Number($('rQty').value||1),amount:Number($('rAmount').value||0),status:$('rStatus').value,note:$('rNote').value.trim()};
+  if(!data.date || !data.name || !data.item){alert('日付・お客様名・商品名を入力してください');return;}
+  try{
+    await api('addReservation', data);
+    ['rName','rItem','rAmount','rUnitPrice','rTime','rNote'].forEach(id=>$(id).value='');
+    $('rProduct').value=''; $('rQty').value=1;
+    await loadAll();
+    alert('予約を保存しました');
+  }catch(err){alert('保存エラー：' + err.message);}
+}
+async function saveSale(){
+  const data={date:$('sDate').value,amount:Number($('sAmount').value||0),weather:$('sWeather').value,weatherNote:$('sWeatherNote').value.trim(),event:$('sEvent').value.trim(),note:$('sNote').value.trim()};
+  if(!data.date){alert('日付を入力してください');return;}
+  try{await api('saveSale', data); await loadAll(); alert('売上を保存しました');}catch(err){alert('保存エラー：' + err.message);}
+}
+async function addProduct(){
+  const data={name:$('pName').value.trim(),price:Number($('pPrice').value||0),note:$('pNote').value.trim()};
+  if(!data.name){alert('商品名を入力してください');return;}
+  try{await api('addProduct', data); $('pName').value='';$('pPrice').value='';$('pNote').value=''; await loadAll(); alert('商品を登録しました');}catch(err){alert('保存エラー：' + err.message);}
+}
+function reservationHtml(r){return `<div class="list-item"><b>${r.date} ${r.time||''}　${escapeHtml(r.name)}</b><br><span>${escapeHtml(r.item)} × ${r.qty}</span><span class="pill">${r.status}</span><br><span class="price">${yen(r.amount)}</span><div class="mini">単価 ${yen(r.unitPrice||0)}　${escapeHtml(r.note||'')}</div></div>`}
+function saleHtml(s){return `<div class="list-item"><b>${s.date}</b><span class="pill">${s.weather}</span><br><span class="price">${yen(s.amount)}</span><div class="mini">天気メモ：${escapeHtml(s.weatherNote||'-')}<br>イベント：${escapeHtml(s.event||'-')}<br>備考：${escapeHtml(s.note||'-')}</div></div>`}
+function productHtml(p){return `<div class="list-item"><b>${escapeHtml(p.name)}</b><br><span class="price">${yen(p.price)}</span><div class="mini">${escapeHtml(p.note||'')}</div></div>`}
+function render(){
+  updateProductSelect();
+  const t=today();
+  const todaysR=reservations.filter(r=>r.date===t).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const todaySale=sales.find(s=>s.date===t)||{};
+  $('todayReserveCount').textContent=todaysR.length+'件';
+  $('todaySales').textContent=yen(todaySale.amount);
+  $('todayReserveAmount').textContent=yen(todaysR.reduce((a,r)=>a+Number(r.amount||0),0));
+  $('todayWeather').textContent=todaySale.weather||'未入力';
+  $('todayReservations').innerHTML=todaysR.length?todaysR.map(reservationHtml).join(''):'<div class="empty">今日の予約はまだありません</div>';
+  const fd=$('filterDate').value;
+  const list=reservations.filter(r=>!fd||r.date===fd).sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||'')));
+  $('reservationList').innerHTML=list.length?list.map(reservationHtml).join(''):'<div class="empty">予約がありません</div>';
+  const sl=[...sales].sort((a,b)=>b.date.localeCompare(a.date));
+  $('salesList').innerHTML=sl.length?sl.map(saleHtml).join(''):'<div class="empty">売上データがありません</div>';
+  $('productList').innerHTML=products.length?products.map(productHtml).join(''):'<div class="empty">商品がありません</div>';
+  renderReport();
+}
+function renderReport(){
+  const ym=$('reportMonth').value; const yr=String($('reportYear').value||new Date().getFullYear());
+  const monthSales=sales.filter(s=>s.date.startsWith(ym)); const yearSales=sales.filter(s=>s.date.startsWith(yr));
+  const monthSum=monthSales.reduce((a,s)=>a+Number(s.amount||0),0); const yearSum=yearSales.reduce((a,s)=>a+Number(s.amount||0),0);
+  $('monthTotal').textContent=yen(monthSum); $('monthAvg').textContent=yen(monthSales.length?Math.round(monthSum/monthSales.length):0); $('yearTotal').textContent=yen(yearSum); $('reserveTotal').textContent=reservations.filter(r=>r.date.startsWith(ym)).length+'件';
+  const by={}; monthSales.forEach(s=>{by[s.weather]=(by[s.weather]||{sum:0,count:0});by[s.weather].sum+=Number(s.amount||0);by[s.weather].count++;});
+  $('weatherReport').innerHTML=Object.keys(by).length?Object.entries(by).map(([w,v])=>`<div class="list-item"><b>${w}</b>　${v.count}日　平均 ${yen(Math.round(v.sum/v.count))}　合計 ${yen(v.sum)}</div>`).join(''):'<div class="empty">対象月の売上データがありません</div>';
+  const pb={}; reservations.filter(r=>r.date.startsWith(ym)).forEach(r=>{pb[r.item]=(pb[r.item]||{sum:0,qty:0,count:0});pb[r.item].sum+=Number(r.amount||0);pb[r.item].qty+=Number(r.qty||0);pb[r.item].count++;});
+  $('productReport').innerHTML=Object.keys(pb).length?Object.entries(pb).sort((a,b)=>b[1].sum-a[1].sum).map(([name,v])=>`<div class="list-item"><b>${escapeHtml(name)}</b>　予約${v.count}件　数量${v.qty}個<br><span class="price">${yen(v.sum)}</span></div>`).join(''):'<div class="empty">対象月の予約データがありません</div>';
+}
+function escapeHtml(str){return String(str).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 
-document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchScreen(tab.dataset.screen)));
-
-productForm.addEventListener('submit', event => {
-  event.preventDefault();
-  data.products.push({
-    id: crypto.randomUUID(),
-    name: productName.value.trim(),
-    price: Number(productPrice.value),
-    category: productCategory.value.trim()
-  });
-  productForm.reset();
-  saveData();
+document.addEventListener('DOMContentLoaded',()=>{
+  $('todayText').textContent = new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+  ['rDate','sDate','filterDate'].forEach(id=>$(id).value=today());
+  $('reportMonth').value=today().slice(0,7); $('reportYear').value=new Date().getFullYear();
+  document.querySelectorAll('.tabs button').forEach(btn=>btn.addEventListener('click',()=>showTab(btn.dataset.tab,btn)));
+  $('rProduct').addEventListener('change',applyProductToReservation); $('rUnitPrice').addEventListener('input',calcReservationAmount); $('rQty').addEventListener('input',calcReservationAmount);
+  $('filterDate').addEventListener('input',render); $('reportMonth').addEventListener('input',renderReport); $('reportYear').addEventListener('input',renderReport);
+  $('addReservationBtn').addEventListener('click',addReservation); $('saveSaleBtn').addEventListener('click',saveSale); $('addProductBtn').addEventListener('click',addProduct); $('reloadBtn').addEventListener('click',loadAll);
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').catch(()=>{});} loadAll(); setInterval(loadAll,30000);
 });
-
-reservationForm.addEventListener('submit', event => {
-  event.preventDefault();
-  const product = data.products.find(item => item.id === reservationProduct.value);
-  if (!product) return;
-  const quantity = Number(reservationQuantity.value);
-  data.reservations.push({
-    id: crypto.randomUUID(),
-    date: reservationDate.value,
-    customerName: customerName.value.trim(),
-    productId: product.id,
-    productName: product.name,
-    unitPrice: product.price,
-    quantity,
-    total: product.price * quantity,
-    pickupTime: pickupTime.value,
-    status: reservationStatus.value,
-    note: reservationNote.value.trim()
-  });
-  reservationForm.reset();
-  setDefaultDates();
-  updateReservationPreview();
-  saveData();
-});
-
-salesForm.addEventListener('submit', event => {
-  event.preventDefault();
-  const existing = data.sales.find(item => item.date === salesDate.value);
-  const payload = {
-    id: existing?.id || crypto.randomUUID(),
-    date: salesDate.value,
-    amount: Number(salesAmount.value),
-    weather: weather.value,
-    weatherNote: weatherNote.value.trim(),
-    note: salesNote.value.trim()
-  };
-  if (existing) Object.assign(existing, payload); else data.sales.push(payload);
-  salesForm.reset();
-  setDefaultDates();
-  saveData();
-});
-
-function deleteItem(type, id) {
-  data[type] = data[type].filter(item => item.id !== id);
-  saveData();
-}
-
-function updateReservationPreview() {
-  const product = data.products.find(item => item.id === reservationProduct.value);
-  const quantity = Number(reservationQuantity.value || 0);
-  reservationTotalPreview.textContent = yen(product ? product.price * quantity : 0);
-}
-reservationProduct.addEventListener('change', updateReservationPreview);
-reservationQuantity.addEventListener('input', updateReservationPreview);
-
-function renderProductSelect() {
-  reservationProduct.innerHTML = data.products.map(product => `<option value="${product.id}">${escapeHtml(product.name)}（${yen(product.price)}）</option>`).join('');
-  updateReservationPreview();
-}
-
-function renderProducts() {
-  productList.innerHTML = data.products.map(product => `
-    <div class="item">
-      <div class="item-title"><span>${escapeHtml(product.name)}</span><span>${yen(product.price)}</span></div>
-      <div class="item-meta">カテゴリ：${escapeHtml(product.category || '未設定')}</div>
-      <div class="item-actions"><button class="delete" onclick="deleteItem('products','${product.id}')">削除</button></div>
-    </div>
-  `).join('') || '<p>商品がまだありません。</p>';
-}
-
-function renderReservations() {
-  const sorted = [...data.reservations].sort((a, b) => b.date.localeCompare(a.date));
-  reservationList.innerHTML = sorted.map(res => reservationHtml(res)).join('') || '<p>予約がまだありません。</p>';
-  const todays = data.reservations.filter(res => res.date === today());
-  todayReservationCount.textContent = todays.length;
-  todayReservations.innerHTML = todays.map(res => reservationHtml(res, false)).join('') || '<p>今日の予約はありません。</p>';
-}
-
-function reservationHtml(res, actions = true) {
-  return `
-    <div class="item">
-      <div class="item-title"><span>${escapeHtml(res.customerName)}</span><span>${yen(res.total)}</span></div>
-      <div class="item-meta">
-        ${res.date} ${res.pickupTime ? res.pickupTime + '受取' : ''}<br>
-        ${escapeHtml(res.productName)} × ${res.quantity} / ${res.status}<br>
-        備考：${escapeHtml(res.note || 'なし')}
-      </div>
-      ${actions ? `<div class="item-actions"><button class="delete" onclick="deleteItem('reservations','${res.id}')">削除</button></div>` : ''}
-    </div>
-  `;
-}
-
-function renderSales() {
-  const sorted = [...data.sales].sort((a, b) => b.date.localeCompare(a.date));
-  salesList.innerHTML = sorted.map(sale => `
-    <div class="item">
-      <div class="item-title"><span>${sale.date}</span><span>${yen(sale.amount)}</span></div>
-      <div class="item-meta">天気：${escapeHtml(sale.weather)} ${escapeHtml(sale.weatherNote || '')}<br>備考：${escapeHtml(sale.note || 'なし')}</div>
-      <div class="item-actions"><button class="delete" onclick="deleteItem('sales','${sale.id}')">削除</button></div>
-    </div>
-  `).join('') || '<p>売上データがまだありません。</p>';
-  const todaySale = data.sales.find(item => item.date === today());
-  todaySalesTotal.textContent = yen(todaySale?.amount || 0);
-}
-
-function renderReports() {
-  const now = new Date();
-  const ym = now.toISOString().slice(0, 7);
-  const y = String(now.getFullYear());
-  const monthSales = data.sales.filter(s => s.date.startsWith(ym));
-  const yearSales = data.sales.filter(s => s.date.startsWith(y));
-  const monthTotal = monthSales.reduce((sum, s) => sum + Number(s.amount), 0);
-  const yearTotal = yearSales.reduce((sum, s) => sum + Number(s.amount), 0);
-  const average = monthSales.length ? Math.round(monthTotal / monthSales.length) : 0;
-  monthAverageSales.textContent = yen(average);
-  reportMonthSales.textContent = yen(monthTotal);
-  reportYearSales.textContent = yen(yearTotal);
-  reportAverageSales.textContent = yen(average);
-
-  const weatherTotals = {};
-  data.sales.forEach(s => weatherTotals[s.weather] = (weatherTotals[s.weather] || 0) + Number(s.amount));
-  weatherReport.innerHTML = Object.entries(weatherTotals).map(([name, total]) => `<div class="item"><div class="item-title"><span>${escapeHtml(name)}</span><span>${yen(total)}</span></div></div>`).join('') || '<p>天気別データがまだありません。</p>';
-
-  const productTotals = {};
-  data.reservations.forEach(r => productTotals[r.productName] = (productTotals[r.productName] || 0) + Number(r.quantity));
-  productReport.innerHTML = Object.entries(productTotals).map(([name, count]) => `<div class="item"><div class="item-title"><span>${escapeHtml(name)}</span><span>${count}個</span></div></div>`).join('') || '<p>商品別予約実績がまだありません。</p>';
-}
-
-exportButton.addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `bakery-backup-${today()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-});
-
-importFile.addEventListener('change', event => {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    data = JSON.parse(reader.result);
-    saveData();
-  };
-  reader.readAsText(file);
-});
-
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
-}
-
-function render() {
-  renderProductSelect();
-  renderProducts();
-  renderReservations();
-  renderSales();
-  renderReports();
-}
-
-setDefaultDates();
-render();

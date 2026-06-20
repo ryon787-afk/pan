@@ -1,17 +1,1 @@
-{
-  "name": "パン屋予約・売上管理",
-  "short_name": "パン管理",
-  "description": "パン屋向けの予約・売上・商品・天気・備考管理アプリ",
-  "start_url": "./index.html",
-  "scope": "./",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#FFF8F0",
-  "theme_color": "#A0522D",
-  "lang": "ja",
-  "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/maskable-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
-  ]
-}
+{"name":"パン屋 予約・売上管理","short_name":"パン屋管理","start_url":"./index.html","display":"standalone","background_color":"#fff8ef","theme_color":"#c87935","icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png"}]}

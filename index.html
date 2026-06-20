@@ -2,30 +2,30 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#c87935" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="パン屋管理" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
   <title>パン屋 予約・売上管理</title>
-  <style>
-    :root{--bg:#fff8ef;--card:#fff;--text:#34251d;--muted:#77675d;--main:#c87935;--main2:#f1d2ae;--danger:#c95050;--line:#ead8c2;--ok:#4f8f5f;}
-    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:var(--bg);color:var(--text)}
-    header{position:sticky;top:0;z-index:3;background:linear-gradient(135deg,#d69050,#a85e28);color:white;padding:18px 16px 14px;border-bottom-left-radius:20px;border-bottom-right-radius:20px;box-shadow:0 4px 14px rgba(100,60,20,.18)}
-    h1{font-size:20px;margin:0 0 6px}.today{font-size:13px;opacity:.92}.wrap{padding:14px;max-width:900px;margin:0 auto}.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:12px 0}
-    button{border:0;border-radius:14px;padding:12px 8px;background:var(--main2);color:var(--text);font-weight:700;font-size:13px}button.active,button.primary{background:var(--main);color:white}.danger{background:#f2c5c5;color:#742020}.ok{background:#d8eddc;color:#24522c}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0;box-shadow:0 2px 10px rgba(80,50,30,.06)}
-    h2{font-size:17px;margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin:9px 0}label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px;background:#fffdf9;font-size:16px;color:var(--text)}textarea{min-height:74px;resize:vertical}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.stat{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat div{background:#fff4e7;border-radius:16px;padding:12px}.stat b{display:block;font-size:20px;margin-top:4px}.list-item{border-top:1px solid var(--line);padding:11px 0}.list-item:first-child{border-top:0}.mini{font-size:12px;color:var(--muted);line-height:1.6}.price{font-weight:800}.pill{display:inline-block;border-radius:999px;background:#f6e5d1;padding:4px 8px;font-size:12px;margin-left:4px}.hidden{display:none}.empty{color:var(--muted);text-align:center;padding:18px}.footer-space{height:16px}.smallbtn{padding:8px 10px;font-size:12px;border-radius:10px}.totalBox{background:#fff4e7;border-radius:16px;padding:12px;margin:8px 0;font-size:15px}.totalBox b{font-size:24px}.product-buttons{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.product-buttons button{text-align:left;background:#fff4e7;border:1px solid var(--line)}
-    @media(min-width:720px){.tabs{grid-template-columns:repeat(5,140px)}.product-buttons{grid-template-columns:repeat(3,1fr)}}
-  </style>
 </head>
 <body>
   <header>
     <h1>パン屋 予約・売上管理</h1>
     <div class="today" id="todayText"></div>
+    <div class="sync" id="syncStatus">共有モード：設定待ち</div>
   </header>
+
   <main class="wrap">
     <nav class="tabs">
-      <button class="active" onclick="showTab('home', this)">ホーム</button>
-      <button onclick="showTab('reserve', this)">予約</button>
-      <button onclick="showTab('sales', this)">売上</button>
-      <button onclick="showTab('products', this)">商品</button>
-      <button onclick="showTab('report', this)">実績</button>
+      <button class="active" data-tab="home">ホーム</button>
+      <button data-tab="reserve">予約</button>
+      <button data-tab="sales">売上</button>
+      <button data-tab="products">商品</button>
+      <button data-tab="report">実績</button>
     </nav>
 
     <section id="home" class="tab">
@@ -37,6 +37,7 @@
           <div>今日の予約金額<b id="todayReserveAmount">¥0</b></div>
           <div>今日の天気<b id="todayWeather">未入力</b></div>
         </div>
+        <button class="primary wide" id="reloadBtn">最新データを読み込み</button>
       </div>
       <div class="card"><h2>今日の予約</h2><div id="todayReservations"></div></div>
     </section>
@@ -48,43 +49,40 @@
           <div class="field"><label>日付</label><input id="rDate" type="date"></div>
           <div class="field"><label>受取時間</label><input id="rTime" type="time"></div>
         </div>
-        <div class="field"><label>お客さんの名前</label><input id="rName" placeholder="例：山田さん"></div>
+        <div class="field"><label>お客様名</label><input id="rName" autocomplete="name" placeholder="例：山田様"></div>
         <div class="grid">
-          <div class="field"><label>商品</label><select id="rProduct" onchange="applyProductToReservation()"></select></div>
+          <div class="field"><label>商品</label><select id="rProduct"></select></div>
           <div class="field"><label>商品名を直接入力</label><input id="rItem" placeholder="例：食パン"></div>
         </div>
         <div class="grid">
-          <div class="field"><label>単価</label><input id="rUnitPrice" type="number" min="0" placeholder="例：320" oninput="calcReservationAmount()"></div>
-          <div class="field"><label>個数</label><input id="rQty" type="number" min="1" value="1" oninput="calcReservationAmount()"></div>
+          <div class="field"><label>単価</label><input id="rUnitPrice" type="number" inputmode="numeric" min="0" placeholder="例：700"></div>
+          <div class="field"><label>個数</label><input id="rQty" type="number" inputmode="numeric" min="1" value="1"></div>
         </div>
         <div class="grid">
-          <div class="field"><label>金額</label><input id="rAmount" type="number" min="0" placeholder="自動計算・手入力も可"></div>
+          <div class="field"><label>金額</label><input id="rAmount" type="number" inputmode="numeric" min="0" placeholder="自動計算"></div>
           <div class="field"><label>状態</label><select id="rStatus"><option>未受取</option><option>受取済み</option><option>キャンセル</option></select></div>
         </div>
         <div class="field"><label>備考</label><textarea id="rNote" placeholder="例：6枚切り、袋分け、領収書あり"></textarea></div>
-        <button class="primary" onclick="addReservation()">予約を保存</button>
+        <button class="primary wide" id="addReservationBtn">予約を保存</button>
       </div>
-      <div class="card">
-        <h2>商品をすばやく選択</h2>
-        <div id="quickProducts" class="product-buttons"></div>
-      </div>
-      <div class="card"><h2>予約一覧</h2><div class="field"><label>日付で絞り込み</label><input id="filterDate" type="date" oninput="render()"></div><div id="reservationList"></div></div>
+      <div class="card"><h2>商品をすばやく選択</h2><div id="quickProducts" class="product-buttons"></div></div>
+      <div class="card"><h2>予約一覧</h2><div class="field"><label>日付で絞り込み</label><input id="filterDate" type="date"></div><div id="reservationList"></div></div>
     </section>
 
     <section id="sales" class="tab hidden">
       <div class="card">
         <h2>売上を保存</h2>
         <div class="grid">
-          <div class="field"><label>日付</label><input id="sDate" type="date" onchange="loadSaleForDate()"></div>
-          <div class="field"><label>売上</label><input id="sAmount" type="number" min="0" placeholder="例：58000"></div>
+          <div class="field"><label>日付</label><input id="sDate" type="date"></div>
+          <div class="field"><label>売上</label><input id="sAmount" type="number" inputmode="numeric" min="0" placeholder="例：58000"></div>
         </div>
         <div class="grid">
           <div class="field"><label>天気</label><select id="sWeather"><option>晴れ</option><option>くもり</option><option>雨</option><option>雪</option><option>強風</option><option>台風</option><option>猛暑</option><option>寒い</option><option>その他</option></select></div>
           <div class="field"><label>気温・天気メモ</label><input id="sWeatherNote" placeholder="例：朝から雨、最高気温28℃"></div>
         </div>
-        <div class="field"><label>イベント・客足メモ</label><input id="sEvent" placeholder="例：近所で祭り、学校行事、給料日後"></div>
-        <div class="field"><label>備考</label><textarea id="sNote" placeholder="売れ行き、余り、次回増やす商品、反省など"></textarea></div>
-        <button class="primary" onclick="saveSale()">売上を保存</button>
+        <div class="field"><label>イベント・客足メモ</label><input id="sEvent" placeholder="例：近所で祭り、学校行事"></div>
+        <div class="field"><label>備考</label><textarea id="sNote"></textarea></div>
+        <button class="primary wide" id="saveSaleBtn">売上を保存</button>
       </div>
       <div class="card"><h2>売上一覧</h2><div id="salesList"></div></div>
     </section>
@@ -94,10 +92,10 @@
         <h2>商品・金額を登録</h2>
         <div class="grid">
           <div class="field"><label>商品名</label><input id="pName" placeholder="例：塩パン"></div>
-          <div class="field"><label>金額</label><input id="pPrice" type="number" min="0" placeholder="例：180"></div>
+          <div class="field"><label>金額</label><input id="pPrice" type="number" inputmode="numeric" min="0" placeholder="例：180"></div>
         </div>
-        <div class="field"><label>商品メモ</label><input id="pNote" placeholder="例：人気商品、土日多め"></div>
-        <button class="primary" onclick="addProduct()">商品を登録</button>
+        <div class="field"><label>商品メモ</label><input id="pNote" placeholder="例：人気商品"></div>
+        <button class="primary wide" id="addProductBtn">商品を登録</button>
       </div>
       <div class="card"><h2>登録商品一覧</h2><div id="productList"></div></div>
     </section>
@@ -106,8 +104,8 @@
       <div class="card">
         <h2>実績</h2>
         <div class="grid">
-          <div class="field"><label>対象年月</label><input id="reportMonth" type="month" oninput="renderReport()"></div>
-          <div class="field"><label>対象年</label><input id="reportYear" type="number" oninput="renderReport()"></div>
+          <div class="field"><label>対象年月</label><input id="reportMonth" type="month"></div>
+          <div class="field"><label>対象年</label><input id="reportYear" type="number" inputmode="numeric"></div>
         </div>
         <div class="stat">
           <div>月の売上合計<b id="monthTotal">¥0</b></div>
@@ -119,76 +117,7 @@
       <div class="card"><h2>天気別の売上</h2><div id="weatherReport"></div></div>
       <div class="card"><h2>商品別の予約金額</h2><div id="productReport"></div></div>
     </section>
-    <div class="footer-space"></div>
   </main>
-
-<script>
-const yen = n => '¥' + Number(n||0).toLocaleString('ja-JP');
-const today = () => new Date().toISOString().slice(0,10);
-let reservations = JSON.parse(localStorage.getItem('bakeryReservations') || '[]');
-let sales = JSON.parse(localStorage.getItem('bakerySales') || '[]');
-let products = JSON.parse(localStorage.getItem('bakeryProducts') || '[]');
-if(products.length===0){products=[
-  {id:1,name:'食パン',price:320,note:'基本商品'},
-  {id:2,name:'塩パン',price:180,note:''},
-  {id:3,name:'あんぱん',price:200,note:''},
-  {id:4,name:'メロンパン',price:220,note:''}
-];}
-
-document.getElementById('todayText').textContent = new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
-['rDate','sDate','filterDate'].forEach(id=>document.getElementById(id).value=today());
-document.getElementById('reportMonth').value = today().slice(0,7);
-document.getElementById('reportYear').value = new Date().getFullYear();
-
-function persist(){localStorage.setItem('bakeryReservations', JSON.stringify(reservations));localStorage.setItem('bakerySales', JSON.stringify(sales));localStorage.setItem('bakeryProducts', JSON.stringify(products));}
-function showTab(id, btn){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');render();}
-function updateProductSelect(){
-  rProduct.innerHTML='<option value="">商品を選択</option>'+products.map(p=>`<option value="${p.id}">${escapeHtml(p.name)} / ${yen(p.price)}</option>`).join('');
-  quickProducts.innerHTML=products.length?products.map(p=>`<button onclick="selectQuickProduct(${p.id})"><b>${escapeHtml(p.name)}</b><br><span class="mini">${yen(p.price)} ${escapeHtml(p.note||'')}</span></button>`).join(''):'<div class="empty">商品登録から商品を追加してください</div>';
-}
-function applyProductToReservation(){const p=products.find(x=>String(x.id)===String(rProduct.value)); if(!p)return; rItem.value=p.name; rUnitPrice.value=p.price; calcReservationAmount();}
-function selectQuickProduct(id){rProduct.value=id; applyProductToReservation(); window.scrollTo({top:80,behavior:'smooth'});}
-function calcReservationAmount(){rAmount.value = Number(rUnitPrice.value||0) * Number(rQty.value||1);}
-function addReservation(){
-  const data={id:Date.now(),date:rDate.value,time:rTime.value,name:rName.value.trim(),item:rItem.value.trim(),unitPrice:Number(rUnitPrice.value||0),qty:Number(rQty.value||1),amount:Number(rAmount.value||0),status:rStatus.value,note:rNote.value.trim()};
-  if(!data.date || !data.name || !data.item){alert('日付・名前・商品名を入力してください');return;}
-  reservations.push(data); persist(); ['rName','rItem','rAmount','rUnitPrice','rTime','rNote'].forEach(id=>document.getElementById(id).value=''); rProduct.value=''; rQty.value=1; render(); alert('予約を保存しました');
-}
-function saveSale(){
-  const data={id:Date.now(),date:sDate.value,amount:Number(sAmount.value||0),weather:sWeather.value,weatherNote:sWeatherNote.value.trim(),event:sEvent.value.trim(),note:sNote.value.trim()};
-  if(!data.date){alert('日付を入力してください');return;}
-  sales = sales.filter(x=>x.date!==data.date); sales.push(data); persist(); render(); alert('売上を保存しました');
-}
-function loadSaleForDate(){const s=sales.find(x=>x.date===sDate.value); if(!s)return; sAmount.value=s.amount; sWeather.value=s.weather; sWeatherNote.value=s.weatherNote||''; sEvent.value=s.event||''; sNote.value=s.note||'';}
-function addProduct(){const name=pName.value.trim(); const price=Number(pPrice.value||0); if(!name){alert('商品名を入力してください');return;} products.push({id:Date.now(),name,price,note:pNote.value.trim()}); persist(); pName.value=''; pPrice.value=''; pNote.value=''; render(); alert('商品を登録しました');}
-function removeProduct(id){products=products.filter(x=>x.id!==id);persist();render();}
-function removeReservation(id){reservations=reservations.filter(x=>x.id!==id);persist();render();}
-function removeSale(id){sales=sales.filter(x=>x.id!==id);persist();render();}
-function reservationHtml(r){return `<div class="list-item"><b>${r.date} ${r.time||''}　${escapeHtml(r.name)}</b><br><span>${escapeHtml(r.item)} × ${r.qty}</span><span class="pill">${r.status}</span><br><span class="price">${yen(r.amount)}</span><div class="mini">単価 ${yen(r.unitPrice||0)}　${escapeHtml(r.note||'')}</div><button class="danger smallbtn" onclick="removeReservation(${r.id})">削除</button></div>`}
-function saleHtml(s){return `<div class="list-item"><b>${s.date}</b><span class="pill">${s.weather}</span><br><span class="price">${yen(s.amount)}</span><div class="mini">天気メモ：${escapeHtml(s.weatherNote||'-')}<br>イベント：${escapeHtml(s.event||'-')}<br>備考：${escapeHtml(s.note||'-')}</div><button class="danger smallbtn" onclick="removeSale(${s.id})">削除</button></div>`}
-function productHtml(p){return `<div class="list-item"><b>${escapeHtml(p.name)}</b><br><span class="price">${yen(p.price)}</span><div class="mini">${escapeHtml(p.note||'')}</div><button class="danger smallbtn" onclick="removeProduct(${p.id})">削除</button></div>`}
-function render(){
-  updateProductSelect();
-  const t=today(); const todaysR=reservations.filter(r=>r.date===t).sort((a,b)=>(a.time||'').localeCompare(b.time||'')); const todaySale=sales.find(s=>s.date===t)||{};
-  todayReserveCount.textContent=todaysR.length+'件'; todaySales.textContent=yen(todaySale.amount); todayReserveAmount.textContent=yen(todaysR.reduce((a,r)=>a+r.amount,0)); todayWeather.textContent=todaySale.weather||'未入力';
-  todayReservations.innerHTML=todaysR.length?todaysR.map(reservationHtml).join(''):'<div class="empty">今日の予約はまだありません</div>';
-  const fd=filterDate.value; const list=reservations.filter(r=>!fd||r.date===fd).sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||'')));
-  reservationList.innerHTML=list.length?list.map(reservationHtml).join(''):'<div class="empty">予約がありません</div>';
-  const sl=[...sales].sort((a,b)=>b.date.localeCompare(a.date)); salesList.innerHTML=sl.length?sl.map(saleHtml).join(''):'<div class="empty">売上データがありません</div>';
-  productList.innerHTML=products.length?products.map(productHtml).join(''):'<div class="empty">商品がありません</div>';
-  renderReport();
-}
-function renderReport(){
-  const ym=reportMonth.value; const yr=String(reportYear.value||new Date().getFullYear());
-  const monthSales=sales.filter(s=>s.date.startsWith(ym)); const yearSales=sales.filter(s=>s.date.startsWith(yr)); const monthSum=monthSales.reduce((a,s)=>a+s.amount,0); const yearSum=yearSales.reduce((a,s)=>a+s.amount,0);
-  monthTotal.textContent=yen(monthSum); monthAvg.textContent=yen(monthSales.length?Math.round(monthSum/monthSales.length):0); yearTotal.textContent=yen(yearSum); reserveTotal.textContent=reservations.filter(r=>r.date.startsWith(ym)).length+'件';
-  const by={}; monthSales.forEach(s=>{by[s.weather]=(by[s.weather]||{sum:0,count:0});by[s.weather].sum+=s.amount;by[s.weather].count++;});
-  weatherReport.innerHTML=Object.keys(by).length?Object.entries(by).map(([w,v])=>`<div class="list-item"><b>${w}</b>　${v.count}日　平均 ${yen(Math.round(v.sum/v.count))}　合計 ${yen(v.sum)}</div>`).join(''):'<div class="empty">対象月の売上データがありません</div>';
-  const pb={}; reservations.filter(r=>r.date.startsWith(ym)).forEach(r=>{pb[r.item]=(pb[r.item]||{sum:0,qty:0,count:0});pb[r.item].sum+=r.amount;pb[r.item].qty+=r.qty;pb[r.item].count++;});
-  productReport.innerHTML=Object.keys(pb).length?Object.entries(pb).sort((a,b)=>b[1].sum-a[1].sum).map(([name,v])=>`<div class="list-item"><b>${escapeHtml(name)}</b>　予約${v.count}件　数量${v.qty}個<br><span class="price">${yen(v.sum)}</span></div>`).join(''):'<div class="empty">対象月の予約データがありません</div>';
-}
-function escapeHtml(str){return String(str).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
-persist(); render();
-</script>
+  <script src="app.js"></script>
 </body>
 </html>
