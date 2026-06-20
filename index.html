@@ -3,121 +3,55 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#c87935" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="パン屋管理" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#8b4f20" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="stylesheet" href="style.css" />
   <title>パン屋 予約・売上管理</title>
 </head>
 <body>
   <header>
     <h1>パン屋 予約・売上管理</h1>
-    <div class="today" id="todayText"></div>
-    <div class="sync" id="syncStatus">共有モード：設定待ち</div>
+    <div id="todayText"></div>
+    <div id="syncStatus">共有データを読み込み中…</div>
   </header>
 
-  <main class="wrap">
-    <nav class="tabs">
-      <button class="active" data-tab="home">ホーム</button>
-      <button data-tab="reserve">予約</button>
-      <button data-tab="sales">売上</button>
-      <button data-tab="products">商品</button>
-      <button data-tab="report">実績</button>
-    </nav>
-
-    <section id="home" class="tab">
-      <div class="card">
-        <h2>今日のまとめ</h2>
-        <div class="stat">
-          <div>今日の予約件数<b id="todayReserveCount">0件</b></div>
-          <div>今日の売上<b id="todaySales">¥0</b></div>
-          <div>今日の予約金額<b id="todayReserveAmount">¥0</b></div>
-          <div>今日の天気<b id="todayWeather">未入力</b></div>
-        </div>
-        <button class="primary wide" id="reloadBtn">最新データを読み込み</button>
+  <main>
+    <section class="card">
+      <h2>予約を追加</h2>
+      <div class="grid">
+        <label>日付<input id="date" type="date"></label>
+        <label>受取時間<input id="time" type="time"></label>
       </div>
-      <div class="card"><h2>今日の予約</h2><div id="todayReservations"></div></div>
+      <label>お客様名<input id="name" placeholder="例：山田様"></label>
+      <label>商品名を直接入力<input id="item" placeholder="例：贅沢ミルク食パン"></label>
+      <div class="grid">
+        <label>単価<input id="unitPrice" type="number" inputmode="numeric" value="700"></label>
+        <label>個数<input id="qty" type="number" inputmode="numeric" value="1" min="1"></label>
+      </div>
+      <label>金額<input id="amount" type="number" inputmode="numeric" value="700"></label>
+      <label>状態
+        <select id="status">
+          <option>未受取</option>
+          <option>受取済み</option>
+          <option>キャンセル</option>
+        </select>
+      </label>
+      <label>備考<textarea id="note" placeholder="例：6枚切り、袋分け、領収書あり"></textarea></label>
+      <button id="saveBtn">予約を保存</button>
     </section>
 
-    <section id="reserve" class="tab hidden">
-      <div class="card">
-        <h2>予約を追加</h2>
-        <div class="grid">
-          <div class="field"><label>日付</label><input id="rDate" type="date"></div>
-          <div class="field"><label>受取時間</label><input id="rTime" type="time"></div>
-        </div>
-        <div class="field"><label>お客様名</label><input id="rName" autocomplete="name" placeholder="例：山田様"></div>
-        <div class="grid">
-          <div class="field"><label>商品</label><select id="rProduct"></select></div>
-          <div class="field"><label>商品名を直接入力</label><input id="rItem" placeholder="例：食パン"></div>
-        </div>
-        <div class="grid">
-          <div class="field"><label>単価</label><input id="rUnitPrice" type="number" inputmode="numeric" min="0" placeholder="例：700"></div>
-          <div class="field"><label>個数</label><input id="rQty" type="number" inputmode="numeric" min="1" value="1"></div>
-        </div>
-        <div class="grid">
-          <div class="field"><label>金額</label><input id="rAmount" type="number" inputmode="numeric" min="0" placeholder="自動計算"></div>
-          <div class="field"><label>状態</label><select id="rStatus"><option>未受取</option><option>受取済み</option><option>キャンセル</option></select></div>
-        </div>
-        <div class="field"><label>備考</label><textarea id="rNote" placeholder="例：6枚切り、袋分け、領収書あり"></textarea></div>
-        <button class="primary wide" id="addReservationBtn">予約を保存</button>
-      </div>
-      <div class="card"><h2>商品をすばやく選択</h2><div id="quickProducts" class="product-buttons"></div></div>
-      <div class="card"><h2>予約一覧</h2><div class="field"><label>日付で絞り込み</label><input id="filterDate" type="date"></div><div id="reservationList"></div></div>
+    <section class="card">
+      <h2>商品をすばやく選択</h2>
+      <div class="quick" id="quickProducts"></div>
     </section>
 
-    <section id="sales" class="tab hidden">
-      <div class="card">
-        <h2>売上を保存</h2>
-        <div class="grid">
-          <div class="field"><label>日付</label><input id="sDate" type="date"></div>
-          <div class="field"><label>売上</label><input id="sAmount" type="number" inputmode="numeric" min="0" placeholder="例：58000"></div>
-        </div>
-        <div class="grid">
-          <div class="field"><label>天気</label><select id="sWeather"><option>晴れ</option><option>くもり</option><option>雨</option><option>雪</option><option>強風</option><option>台風</option><option>猛暑</option><option>寒い</option><option>その他</option></select></div>
-          <div class="field"><label>気温・天気メモ</label><input id="sWeatherNote" placeholder="例：朝から雨、最高気温28℃"></div>
-        </div>
-        <div class="field"><label>イベント・客足メモ</label><input id="sEvent" placeholder="例：近所で祭り、学校行事"></div>
-        <div class="field"><label>備考</label><textarea id="sNote"></textarea></div>
-        <button class="primary wide" id="saveSaleBtn">売上を保存</button>
-      </div>
-      <div class="card"><h2>売上一覧</h2><div id="salesList"></div></div>
-    </section>
-
-    <section id="products" class="tab hidden">
-      <div class="card">
-        <h2>商品・金額を登録</h2>
-        <div class="grid">
-          <div class="field"><label>商品名</label><input id="pName" placeholder="例：塩パン"></div>
-          <div class="field"><label>金額</label><input id="pPrice" type="number" inputmode="numeric" min="0" placeholder="例：180"></div>
-        </div>
-        <div class="field"><label>商品メモ</label><input id="pNote" placeholder="例：人気商品"></div>
-        <button class="primary wide" id="addProductBtn">商品を登録</button>
-      </div>
-      <div class="card"><h2>登録商品一覧</h2><div id="productList"></div></div>
-    </section>
-
-    <section id="report" class="tab hidden">
-      <div class="card">
-        <h2>実績</h2>
-        <div class="grid">
-          <div class="field"><label>対象年月</label><input id="reportMonth" type="month"></div>
-          <div class="field"><label>対象年</label><input id="reportYear" type="number" inputmode="numeric"></div>
-        </div>
-        <div class="stat">
-          <div>月の売上合計<b id="monthTotal">¥0</b></div>
-          <div>月平均売上<b id="monthAvg">¥0</b></div>
-          <div>年間売上<b id="yearTotal">¥0</b></div>
-          <div>予約実績<b id="reserveTotal">0件</b></div>
-        </div>
-      </div>
-      <div class="card"><h2>天気別の売上</h2><div id="weatherReport"></div></div>
-      <div class="card"><h2>商品別の予約金額</h2><div id="productReport"></div></div>
+    <section class="card">
+      <h2>共有予約一覧</h2>
+      <button class="sub" id="reloadBtn">再読み込み</button>
+      <div id="list"></div>
     </section>
   </main>
+
   <script src="app.js"></script>
 </body>
 </html>
