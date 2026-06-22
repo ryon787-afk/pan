@@ -8,3 +8,6 @@
     .toast{position:fixed;left:50%;top:82px;transform:translateX(-50%);z-index:20;max-width:92%;padding:11px 14px;border-radius:14px;color:white;background:#4f8f5f;box-shadow:0 6px 18px rgba(50,30,10,.22);font-weight:700;font-size:13px}.toast.err{background:#c95050}.toast.warn{background:#d97706}
     .lock{position:fixed;inset:0;background:linear-gradient(135deg,#fff8ef,#f2d6b4);z-index:50;display:flex;align-items:center;justify-content:center;padding:18px}.lockbox{width:min(420px,100%);background:white;border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 8px 28px rgba(80,50,30,.15)}.lockbox h2{font-size:20px;color:var(--main);margin-bottom:8px}
     @media(min-width:720px){.tabs{grid-template-columns:repeat(5,140px)}.product-buttons{grid-template-columns:repeat(3,1fr)}}
+
+/* ログイン画面を確実に非表示にする修正 */
+.lock.hidden{display:none !important;}
