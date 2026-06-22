@@ -1,1 +1,29 @@
-const Sales={save(){const ex=DB.sales.find(s=>s.date===sDate.value);const data={date:sDate.value,store:Number(storeSales.value||0),weather:weather.value,memo:salesMemo.value};if(ex)Object.assign(ex,data);else DB.sales.push(data);Store.save(DB);App.render();alert('売上を保存しました')},render(){const d=sDate.value||Store.today();const s=DB.sales.find(x=>x.date===d)||{};storeSales.value=s.store||'';weather.value=s.weather||'晴れ';salesMemo.value=s.memo||'';const reserve=DB.reservations.filter(r=>r.date===d&&r.status!=='キャンセル').flatMap(r=>r.items).reduce((a,i)=>a+i.amount,0);salesSummary.innerHTML=`<div class="list">予約売上 ${Store.yen(reserve)}<br>店頭販売 ${Store.yen(s.store||0)}<br><b>合計 ${Store.yen(reserve+Number(s.store||0))}</b></div>`}}
+// 売上機能
+function saveSale(){
+  const data={id:Date.now(),date:sDate.value,amount:Number(sAmount.value||0),weather:sWeather.value,weatherNote:sWeatherNote.value.trim(),event:sEvent.value.trim(),note:sNote.value.trim(),updatedAt:new Date().toISOString()};
+  if(!data.date){alert('日付を入力してください');return;}
+  sales = sales.filter(x=>x.date!==data.date);
+  sales.push(data);
+  persist();
+  toast('売上を保存しました');
+}
+
+function loadSaleForDate(){
+  const s=sales.find(x=>x.date===sDate.value);
+  if(!s)return;
+  sAmount.value=s.amount;
+  sWeather.value=s.weather;
+  sWeatherNote.value=s.weatherNote||'';
+  sEvent.value=s.event||'';
+  sNote.value=s.note||'';
+}
+
+function removeSale(id){
+  if(!confirm('この売上を削除しますか？'))return;
+  sales=sales.filter(x=>x.id!==id);
+  persist();
+}
+
+function saleHtml(s){
+  return `<div class="list-item"><b>${s.date}</b><span class="pill">${escapeHtml(s.weather)}</span><br><span class="price">${yen(s.amount)}</span><div class="mini">天気メモ：${escapeHtml(s.weatherNote||'-')}<br>イベント：${escapeHtml(s.event||'-')}<br>備考：${escapeHtml(s.note||'-')}</div><button class="danger smallbtn" onclick="removeSale(${s.id})">削除</button></div>`;
+}
