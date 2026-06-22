@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#9edcf2">
 <link rel="manifest" href="manifest.json?v=414">
-<title>くぼちゃんパン管理システム Ver.4.0.15</title>
+<title>くぼちゃんパン管理システム Ver.4.0.16</title>
 <style>
 :root{--bg:#eaf8ff;--card:#fff;--blue:#55b7df;--blue2:#2f9fd0;--text:#18445c;--muted:#5f7d8e;--cream:#fff7d8;--line:#c8edf9;--danger:#e66b7a;--ok:#57b982;--shadow:0 8px 22px rgba(55,150,190,.15)}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eaf8ff,#f7fcff);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:var(--text);padding-bottom:78px}header{background:linear-gradient(135deg,#8eddf5,#50b9df);color:white;padding:16px 14px 12px;border-radius:0 0 24px 24px;box-shadow:var(--shadow);position:sticky;top:0;z-index:10}h1{margin:0;font-size:19px}.sub{font-size:12px;opacity:.95}.wrap{padding:12px;max-width:1080px;margin:auto}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:14px;margin:10px 0;box-shadow:var(--shadow)}.bluecard{background:linear-gradient(135deg,#65c7ea,#2497cc);color:white}.bluecard .muted,.bluecard label{color:#eaf9ff}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:rgba(255,255,255,.22);border-radius:16px;padding:10px}.stat b{display:block;font-size:20px;margin-top:3px}.stat.danger-stat{background:rgba(230,107,122,.35)!important}label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fbfeff;font-size:16px;color:var(--text)}textarea{min-height:72px}button{border:0;border-radius:16px;padding:12px 14px;background:var(--blue);color:white;font-weight:800;font-size:14px;box-shadow:0 4px 12px rgba(47,159,208,.16)}button.secondary{background:#e8f7fc;color:var(--text)}button.danger{background:var(--danger)}button.ok{background:var(--ok)}.tabs{position:fixed;bottom:0;left:0;right:0;background:#ffffffee;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:20}.tabs button{box-shadow:none;background:transparent;color:var(--muted);font-size:11px;padding:7px 2px;border-radius:14px}.tabs button.active{background:#dff5fd;color:var(--blue2)}h2{font-size:17px;margin:0 0 10px}.item{border-top:1px solid var(--line);padding:11px 0}.item:first-child{border-top:0}.muted{color:var(--muted);font-size:12px}.pill{display:inline-block;background:#e6f8ff;color:#1f83ad;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:700}.hidden{display:none!important}.prodrow{background:#f2fbff;border:1px solid var(--line);border-radius:18px;padding:10px;margin:8px 0}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.miniList{font-size:13px;line-height:1.7}.toast{position:fixed;left:14px;right:14px;bottom:84px;background:#18445c;color:white;border-radius:18px;padding:12px;text-align:center;z-index:40;box-shadow:var(--shadow)}.modal{position:fixed;inset:0;background:rgba(0,40,70,.25);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}.modalBox{background:white;border-radius:24px;padding:18px;max-width:520px;width:100%;box-shadow:var(--shadow)}
@@ -16,7 +16,7 @@
 </style>
 </head>
 <body>
-<header><h1>🐮 くぼちゃんパン管理システム</h1><div class="sub" id="versionLabel">Ver.4.0.15｜削除同期修正版</div></header>
+<header><h1>🐮 くぼちゃんパン管理システム</h1><div class="sub" id="versionLabel">Ver.4.0.16｜自動同期版</div></header>
 <main class="wrap"><div id="roleBar" class="roleBar hidden"></div>
 <section id="home" class="tabPage">
  <div class="card bluecard"><h2>🏠 今日のまとめ</h2><div class="grid3"><div class="stat">予約件数<b id="hCount">0件</b></div><div class="stat">予約売上<b id="hReserve">¥0</b></div><div class="stat">店頭売上<b id="hShop">¥0</b></div><div class="stat">合計売上<b id="hTotal">¥0</b></div><div class="stat">未受取<b id="hWait">0件</b></div><div class="stat">製造品目<b id="hProdCount">0種</b></div></div></div>
@@ -65,7 +65,7 @@ grant select, insert, update, delete on public.app_state to anon, authenticated;
 <div id="loginScreen" class="modal"><div class="modalBox"><h2>🔐 権限ログイン</h2><div class="muted">共有用に、使う人の権限を選んでパスワードを入力してください。</div><label>権限</label><select id="loginRole"><option value="viewer">閲覧のみ</option><option value="staff">スタッフ</option><option value="admin">管理者</option></select><label>パスワード</label><input id="loginPin" type="password" inputmode="numeric" placeholder="パスワード" onkeydown="if(event.key==='Enter')roleLogin()"><button class="ok" onclick="roleLogin()">ログイン</button><div class="muted" style="margin-top:10px">初期値：管理者 7870 ／ スタッフ 1111 ／ 閲覧 0000<br>管理者でログイン後、設定画面から変更できます。</div></div></div><div id="modalRoot"></div><div id="toast" class="toast hidden"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const APP_VERSION='4.0.15';
+const APP_VERSION='4.0.16';
 const yen=n=>'¥'+Number(n||0).toLocaleString('ja-JP');
 const STORE='kubochan_pan_data';
 const SUPABASE_CONFIG_STORE='kubochan_pan_supabase_config';
@@ -93,17 +93,14 @@ function finishLogin(r){currentRole=r;localStorage.setItem('kubochan_pan_role',r
 function logoutRole(){currentRole='';localStorage.removeItem('kubochan_pan_role');loginPin.value='';loginScreen.classList.remove('hidden');render()}
 function saveRolePins(){if(!requireRole('admin','管理者のみ変更できます'))return;ensureSecurity();data.security.rolePins={admin:pinAdmin.value||'7870',staff:pinStaff.value||'1111',viewer:pinViewer.value||'0000'};addAudit('権限パスワード変更');saveData();render();toast('権限パスワードを保存しました')}
 function loadRolePinsToForm(){if(!document.getElementById('pinAdmin'))return;const pins=ensureSecurity();pinAdmin.value=pins.admin;pinStaff.value=pins.staff;pinViewer.value=pins.viewer}
-function applyPermissions(){const rb=document.getElementById('roleBar');if(!rb)return;if(currentRole){rb.classList.remove('hidden');rb.innerHTML=`<div><span class="roleBadge">現在：${ROLE_LABELS[currentRole]||'-'}</span><div class="muted">${currentRole==='admin'?'すべて編集できます':currentRole==='staff'?'予約・売上入力ができます':'閲覧専用です'}</div></div><div class="row" style="flex:0 1 260px"><button class="secondary" onclick="manualRefreshFromCloud()">更新</button><button class="secondary" onclick="logoutRole()">ログアウト</button></div>`}else{rb.classList.add('hidden')}document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=can('admin')?'block':'none');document.querySelectorAll('.staffEdit').forEach(el=>el.disabled=!can('staff'));document.querySelectorAll('.tabs button').forEach((b,i)=>{if(i===5)b.style.display=can('admin')?'block':'none'});if(!can('admin')&&document.getElementById('settings')&&!settings.classList.contains('hidden'))showTab('home',document.querySelectorAll('.tabs button')[0]);}
+function applyPermissions(){const rb=document.getElementById('roleBar');if(!rb)return;if(currentRole){rb.classList.remove('hidden');rb.innerHTML=`<div><span class="roleBadge">現在：${ROLE_LABELS[currentRole]||'-'}</span><div class="muted">${currentRole==='admin'?'すべて編集できます':currentRole==='staff'?'予約・売上入力ができます':'閲覧専用です'}</div></div><div class="row" style="flex:0 1 260px"><button class="secondary" onclick="logoutRole()">ログアウト</button></div>`}else{rb.classList.add('hidden')}document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=can('admin')?'block':'none');document.querySelectorAll('.staffEdit').forEach(el=>el.disabled=!can('staff'));document.querySelectorAll('.tabs button').forEach((b,i)=>{if(i===5)b.style.display=can('admin')?'block':'none'});if(!can('admin')&&document.getElementById('settings')&&!settings.classList.contains('hidden'))showTab('home',document.querySelectorAll('.tabs button')[0]);}
 async function manualRefreshFromCloud(){
   const c=getSupabaseConfig();
-  if(!c.enabled){toast('Supabase設定が必要です');return}
-  // ① ローカルに未同期の変更（削除・追加など）があればクラウドへ先にプッシュ
-  if(hasUnsyncedLocalChanges()){
-    setSyncStatus('ローカルの変更をクラウドへ保存中...');
-    const ok=await cloudUpsertNow(true);
-    if(!ok){toast('クラウドへの保存に失敗しました。更新を中止します');return}
+  if(!c.enabled){toast('Supabase同期が有効になっていません。設定画面で確認してください');return}
+  if(cloudSaveInFlight){
+    setSyncStatus('保存処理中...少しお待ちください');
+    await new Promise(r=>{const t=setInterval(()=>{if(!cloudSaveInFlight){clearInterval(t);r()}},100)});
   }
-  // ② クラウドから最新データをプル
   await cloudPull(false,{force:true})
 }
 function autoRefreshFromCloud(){
@@ -199,7 +196,7 @@ function render(){const today=localDateStr(),tom=localDateStr(1);const tr=reserv
 let currentLocalDay=localDateStr();
 function applyTodayToDateFields(prevDay,newDay){if(document.getElementById('rDate')&&(rDate.value===prevDay||!rDate.value))rDate.value=newDay;if(document.getElementById('filterDate')&&(filterDate.value===prevDay||!filterDate.value))filterDate.value=newDay;if(document.getElementById('sDate')&&(sDate.value===prevDay||!sDate.value))sDate.value=newDay;if(document.getElementById('aMonth')&&(aMonth.value===prevDay.slice(0,7)||!aMonth.value))aMonth.value=newDay.slice(0,7)}
 function checkDayChange(){const newDay=localDateStr();if(newDay!==currentLocalDay){const prevDay=currentLocalDay;applyTodayToDateFields(prevDay,newDay);currentLocalDay=newDay;render()}}
-async function init(){rDate.value=localDateStr();filterDate.value=localDateStr();sDate.value=localDateStr();aMonth.value=localDateStr().slice(0,7);rTime.value='11:00';addProductRow();ensureSecurity();loadSupabaseSettingsToForm();const sbc=getSupabaseConfig();if(sbc.enabled){await cloudPull(true,{force:true});ensureSecurity()}if(currentRole){loginScreen.classList.add('hidden')}render();if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=415');setInterval(checkDayChange,60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){checkDayChange();forceRefreshFromCloud()}});window.addEventListener('focus',()=>{checkDayChange();forceRefreshFromCloud()});setInterval(autoRefreshFromCloud,15000)}
+async function init(){rDate.value=localDateStr();filterDate.value=localDateStr();sDate.value=localDateStr();aMonth.value=localDateStr().slice(0,7);rTime.value='11:00';addProductRow();ensureSecurity();loadSupabaseSettingsToForm();const sbc=getSupabaseConfig();if(sbc.enabled){await cloudPull(true,{force:true});ensureSecurity()}if(currentRole){loginScreen.classList.add('hidden')}render();if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=416');setInterval(checkDayChange,60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){checkDayChange();forceRefreshFromCloud()}});window.addEventListener('focus',()=>{checkDayChange();forceRefreshFromCloud()});setInterval(autoRefreshFromCloud,15000)}
 init();
 </script>
 </body></html>
