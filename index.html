@@ -65,7 +65,7 @@ grant select, insert, update, delete on public.app_state to anon, authenticated;
 <div id="loginScreen" class="modal"><div class="modalBox"><h2>🔐 権限ログイン</h2><div class="muted">共有用に、使う人の権限を選んでパスワードを入力してください。</div><label>権限</label><select id="loginRole"><option value="viewer">閲覧のみ</option><option value="staff">スタッフ</option><option value="admin">管理者</option></select><label>パスワード</label><input id="loginPin" type="password" inputmode="numeric" placeholder="パスワード" onkeydown="if(event.key==='Enter')roleLogin()"><button class="ok" onclick="roleLogin()">ログイン</button><div class="muted" style="margin-top:10px">初期値：管理者 7870 ／ スタッフ 1111 ／ 閲覧 0000<br>管理者でログイン後、設定画面から変更できます。</div></div></div><div id="modalRoot"></div><div id="toast" class="toast hidden"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const APP_VERSION='4.0.14';
+const APP_VERSION='4.0.15';
 const yen=n=>'¥'+Number(n||0).toLocaleString('ja-JP');
 const STORE='kubochan_pan_data';
 const SUPABASE_CONFIG_STORE='kubochan_pan_supabase_config';
@@ -94,7 +94,18 @@ function logoutRole(){currentRole='';localStorage.removeItem('kubochan_pan_role'
 function saveRolePins(){if(!requireRole('admin','管理者のみ変更できます'))return;ensureSecurity();data.security.rolePins={admin:pinAdmin.value||'7870',staff:pinStaff.value||'1111',viewer:pinViewer.value||'0000'};addAudit('権限パスワード変更');saveData();render();toast('権限パスワードを保存しました')}
 function loadRolePinsToForm(){if(!document.getElementById('pinAdmin'))return;const pins=ensureSecurity();pinAdmin.value=pins.admin;pinStaff.value=pins.staff;pinViewer.value=pins.viewer}
 function applyPermissions(){const rb=document.getElementById('roleBar');if(!rb)return;if(currentRole){rb.classList.remove('hidden');rb.innerHTML=`<div><span class="roleBadge">現在：${ROLE_LABELS[currentRole]||'-'}</span><div class="muted">${currentRole==='admin'?'すべて編集できます':currentRole==='staff'?'予約・売上入力ができます':'閲覧専用です'}</div></div><div class="row" style="flex:0 1 260px"><button class="secondary" onclick="manualRefreshFromCloud()">更新</button><button class="secondary" onclick="logoutRole()">ログアウト</button></div>`}else{rb.classList.add('hidden')}document.querySelectorAll('.adminOnly').forEach(el=>el.style.display=can('admin')?'block':'none');document.querySelectorAll('.staffEdit').forEach(el=>el.disabled=!can('staff'));document.querySelectorAll('.tabs button').forEach((b,i)=>{if(i===5)b.style.display=can('admin')?'block':'none'});if(!can('admin')&&document.getElementById('settings')&&!settings.classList.contains('hidden'))showTab('home',document.querySelectorAll('.tabs button')[0]);}
-function manualRefreshFromCloud(){cloudPull(false,{force:true})}
+async function manualRefreshFromCloud(){
+  const c=getSupabaseConfig();
+  if(!c.enabled){toast('Supabase設定が必要です');return}
+  // ① ローカルに未同期の変更（削除・追加など）があればクラウドへ先にプッシュ
+  if(hasUnsyncedLocalChanges()){
+    setSyncStatus('ローカルの変更をクラウドへ保存中...');
+    const ok=await cloudUpsertNow(true);
+    if(!ok){toast('クラウドへの保存に失敗しました。更新を中止します');return}
+  }
+  // ② クラウドから最新データをプル
+  await cloudPull(false,{force:true})
+}
 function autoRefreshFromCloud(){
   const c=getSupabaseConfig();
   if(c.enabled&&c.autoPull&&!syncingFromCloud&&!cloudSaveInFlight&&!hasUnsyncedLocalChanges()){cloudPull(true)}
@@ -107,7 +118,7 @@ function forceRefreshFromCloud(){
 }
 
 function normalizeData(d){d=d&&typeof d==='object'?d:{};const isDate=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v);d.reservations=Array.isArray(d.reservations)?d.reservations.filter(r=>r&&typeof r==='object').map(r=>({...r,date:isDate(r.date)?r.date:localDateStr(),time:r.time||'11:00',items:Array.isArray(r.items)?r.items:[]})):[];d.sales=Array.isArray(d.sales)?d.sales.filter(s=>s&&typeof s==='object'&&isDate(s.date)).map(s=>({date:s.date,shop:Number(s.shop||0),weather:s.weather||'',customers:Number(s.customers||0),memo:s.memo||''})):[];d.products=Array.isArray(d.products)?d.products.filter(p=>p&&typeof p==='object').map((p,i)=>({id:p.id||Date.now()+i,name:p.name||'未設定商品',price:Number(p.price||0),cat:p.cat||'その他',active:p.active!==false})):defaultProducts.map((p,i)=>({id:Date.now()+i,name:p[0],price:p[1],cat:p[2],active:true}));d.password=d.password||'';d.security=d.security&&typeof d.security==='object'?d.security:{};d.security.rolePins={...defaultSecurity(),...(d.security.rolePins||{})};d.audit=Array.isArray(d.audit)?d.audit:[];return d}
-function dataScore(d){return (d.reservations?.length||0)*1000+(d.sales?.length||0)*100+(d.products?.length||0)}
+function dataScore(d){const ts=d._localSavedAt||d._cloudMeta?.savedAt||'';const tsScore=ts?new Date(ts).getTime():0;return tsScore+(d.reservations?.length||0)*1000+(d.sales?.length||0)*100+(d.products?.length||0)}
 function safeParse(v){try{return v?JSON.parse(v):null}catch(e){return null}}
 function loadData(){
   const candidates=[];
@@ -119,7 +130,7 @@ function loadData(){
   try{localStorage.setItem(STORE,JSON.stringify(best))}catch(e){}
   return best;
 }
-function saveLocalOnly(){try{localStorage.setItem(STORE,JSON.stringify(data));localStorage.setItem('kubochan_pan_v338_data',JSON.stringify(data));localStorage.setItem('kubochan_pan_last_saved',new Date().toISOString())}catch(e){alert('保存容量がいっぱいの可能性があります。バックアップ保存をしてください。')}}
+function saveLocalOnly(){try{const now=new Date().toISOString();data._localSavedAt=now;localStorage.setItem(STORE,JSON.stringify(data));localStorage.setItem('kubochan_pan_v338_data',JSON.stringify(data));localStorage.setItem('kubochan_pan_last_saved',now)}catch(e){alert('保存容量がいっぱいの可能性があります。バックアップ保存をしてください。')}}
 function markLocalChange(){lastLocalChangeAt=new Date().toISOString();localStorage.setItem('kubochan_pan_last_local_change_at',lastLocalChangeAt)}
 function hasUnsyncedLocalChanges(){return lastLocalChangeAt&&(!lastCloudUpdatedAt||new Date(lastLocalChangeAt).getTime()>new Date(lastCloudUpdatedAt).getTime()+500)}
 function saveData(){if(!syncingFromCloud)markLocalChange();saveLocalOnly();cloudQueueSave()}
