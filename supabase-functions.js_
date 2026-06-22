@@ -1,0 +1,304 @@
+// Supabase helper functions for the くぼちゃんパン管理システム.
+//
+// These functions wrap the Supabase JavaScript client to perform CRUD
+// operations against the normalized schema defined in `supabase-setup.sql`.  They
+// can be imported into your frontend code to load and persist data without
+// dealing with raw SQL.  See the Supabase documentation and the example
+// blog code for reference on how to initialise the client and perform
+// queries [oai_citation:0‡dev.to](https://dev.to/bosz/building-a-simple-blog-with-supabase-posts-comments-4384#:~:text=%2F%2F%20src%2Flib%2Fsupabase.ts%20import%20,js) [oai_citation:1‡dev.to](https://dev.to/bosz/building-a-simple-blog-with-supabase-posts-comments-4384#:~:text=useEffect%28%28%29%20%3D,ascending%3A%20false).
+
+let supabase = null;
+
+/**
+ * Initialise the global Supabase client.  You must provide the project
+ * URL and anon key from your Supabase project settings.  After
+ * initialisation you can call the other functions in this module.
+ *
+ * @param {string} url  The project URL (e.g. https://xxx.supabase.co)
+ * @param {string} key  The anon public key
+ */
+export function initSupabase(url, key) {
+  if (!window.supabase) {
+    throw new Error('Supabase SDK not loaded. Please include @supabase/supabase-js');
+  }
+  supabase = window.supabase.createClient(url, key);
+  return supabase;
+}
+
+/**
+ * Fetch all application data from Supabase.  The returned object
+ * contains arrays for products, reservations (including items),
+ * sales, audit logs and role pins.  Use this to hydrate your local
+ * state on application start or when the network comes back online.
+ *
+ * @returns {Promise<Object>} A promise resolving to an object with
+ *          { products, reservations, sales, audit, rolePins }
+ */
+export async function loadAllData() {
+  if (!supabase) throw new Error('Supabase not initialised');
+
+  // Fetch products
+  const { data: products, error: prodErr } = await supabase
+    .from('products')
+    .select('*');
+  if (prodErr) throw prodErr;
+
+  // Fetch reservations with nested items.  Supabase allows nested
+  // selection by passing the related table name in parentheses [oai_citation:2‡dev.to](https://dev.to/bosz/building-a-simple-blog-with-supabase-posts-comments-4384#:~:text=useEffect%28%28%29%20%3D,ascending%3A%20false).
+  const { data: reservations, error: resErr } = await supabase
+    .from('reservations')
+    .select('*, reservation_items(*)');
+  if (resErr) throw resErr;
+  const mappedReservations = (reservations || []).map((r) => ({
+    id: r.id,
+    date: r.date,
+    time: r.time,
+    name: r.name,
+    note: r.note,
+    status: r.status,
+    total: r.total,
+    updatedAt: r.updated_at,
+    items: (r.reservation_items || []).map((it) => ({
+      id: it.id,
+      reservationId: it.reservation_id,
+      productId: it.product_id,
+      name: it.name,
+      qty: it.qty,
+      price: it.price,
+    })),
+  }));
+
+  // Fetch sales
+  const { data: sales, error: salesErr } = await supabase
+    .from('sales')
+    .select('*');
+  if (salesErr) throw salesErr;
+
+  // Fetch audit logs (most recent first)
+  const { data: audit, error: auditErr } = await supabase
+    .from('audit')
+    .select('*')
+    .order('time', { ascending: false });
+  if (auditErr) throw auditErr;
+
+  // Fetch role pins
+  const { data: rolePins, error: pinsErr } = await supabase
+    .from('role_pins')
+    .select('*');
+  if (pinsErr) throw pinsErr;
+
+  return {
+    products: products || [],
+    reservations: mappedReservations,
+    sales: sales || [],
+    audit: audit || [],
+    rolePins: rolePins || [],
+  };
+}
+
+/**
+ * Save or update a product.  If the product object contains an `id` it
+ * will be updated, otherwise a new row will be inserted.  The
+ * returned row contains the generated id when inserting a new product.
+ *
+ * @param {Object} product The product to persist
+ * @returns {Promise<Object>} The inserted/updated product row
+ */
+export async function saveProduct(product) {
+  if (!supabase) throw new Error('Supabase not initialised');
+  // If id exists, update; otherwise insert
+  if (product.id) {
+    const { data, error } = await supabase
+      .from('products')
+      .update({
+        name: product.name,
+        price: product.price,
+        cat: product.cat,
+        active: product.active,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', product.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  } else {
+    const { data, error } = await supabase
+      .from('products')
+      .insert({
+        name: product.name,
+        price: product.price,
+        cat: product.cat,
+        active: product.active,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+}
+
+/**
+ * Delete a product by id.  Note that reservations referencing this
+ * product will retain their item names and pricing but will no longer
+ * link to a product row.
+ *
+ * @param {number} id The product id
+ */
+export async function deleteProduct(id) {
+  if (!supabase) throw new Error('Supabase not initialised');
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+}
+
+/**
+ * Save or update a reservation.  If the reservation has an id it will
+ * be updated; otherwise it is inserted and the generated id is
+ * returned.  The items array should include objects with
+ * { productId, name, qty, price }.
+ *
+ * @param {Object} reservation The reservation meta data
+ * @param {Array} items        The items belonging to this reservation
+ * @returns {Promise<number>}  The id of the reservation
+ */
+export async function saveReservation(reservation, items) {
+  if (!supabase) throw new Error('Supabase not initialised');
+  if (reservation.id) {
+    // Update reservation
+    const { error: updateErr } = await supabase
+      .from('reservations')
+      .update({
+        date: reservation.date,
+        time: reservation.time,
+        name: reservation.name,
+        note: reservation.note,
+        status: reservation.status,
+        total: reservation.total,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', reservation.id);
+    if (updateErr) throw updateErr;
+    // Delete existing items and re‑insert
+    const { error: delErr } = await supabase
+      .from('reservation_items')
+      .delete()
+      .eq('reservation_id', reservation.id);
+    if (delErr) throw delErr;
+    if (items && items.length) {
+      const insertItems = items.map((it) => ({
+        reservation_id: reservation.id,
+        product_id: it.productId || null,
+        name: it.name,
+        qty: it.qty,
+        price: it.price,
+      }));
+      const { error: insErr } = await supabase
+        .from('reservation_items')
+        .insert(insertItems);
+      if (insErr) throw insErr;
+    }
+    return reservation.id;
+  } else {
+    // Insert new reservation
+    const { data: insertRow, error: insErr } = await supabase
+      .from('reservations')
+      .insert({
+        date: reservation.date,
+        time: reservation.time,
+        name: reservation.name,
+        note: reservation.note,
+        status: reservation.status,
+        total: reservation.total,
+      })
+      .select()
+      .single();
+    if (insErr) throw insErr;
+    const newId = insertRow.id;
+    if (items && items.length) {
+      const insertItems = items.map((it) => ({
+        reservation_id: newId,
+        product_id: it.productId || null,
+        name: it.name,
+        qty: it.qty,
+        price: it.price,
+      }));
+      const { error: itemsErr } = await supabase
+        .from('reservation_items')
+        .insert(insertItems);
+      if (itemsErr) throw itemsErr;
+    }
+    return newId;
+  }
+}
+
+/**
+ * Delete a reservation and its items.
+ *
+ * @param {number} id The reservation id
+ */
+export async function deleteReservation(id) {
+  if (!supabase) throw new Error('Supabase not initialised');
+  const { error } = await supabase
+    .from('reservations')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+}
+
+/**
+ * Save or update a daily sales record.  If a row with the same date
+ * exists it will be updated, otherwise a new row is inserted.
+ *
+ * @param {Object} sale Contains date, shop, weather, customers, memo
+ */
+export async function saveSale(sale) {
+  if (!supabase) throw new Error('Supabase not initialised');
+  const { error } = await supabase
+    .from('sales')
+    .upsert({
+      date: sale.date,
+      shop: sale.shop,
+      weather: sale.weather,
+      customers: sale.customers,
+      memo: sale.memo,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'date' });
+  if (error) throw error;
+}
+
+/**
+ * Append an audit entry.  Supply the user role, action, and an
+ * optional detail string.  The current timestamp will be generated
+ * automatically by the database.
+ *
+ * @param {string} role   The role of the actor (e.g. 'admin', 'staff')
+ * @param {string} action A summary of the action performed
+ * @param {string} detail Additional detail (optional)
+ */
+export async function appendAudit(role, action, detail = '') {
+  if (!supabase) throw new Error('Supabase not initialised');
+  const { error } = await supabase
+    .from('audit')
+    .insert({ role, action, detail });
+  if (error) throw error;
+}
+
+/**
+ * Update the PIN codes for a given role.  If no row exists for the role
+ * it will be inserted.  Use this to synchronise passcodes across
+ * devices.  For stronger security consider replacing this with
+ * Supabase Auth and performing password resets via the dashboard.
+ *
+ * @param {string} role The role ('admin', 'staff' or 'viewer')
+ * @param {string} pin  The new numeric passcode
+ */
+export async function saveRolePin(role, pin) {
+  if (!supabase) throw new Error('Supabase not initialised');
+  const { error } = await supabase
+    .from('role_pins')
+    .upsert({ role, pin }, { onConflict: 'role' });
+  if (error) throw error;
+}
